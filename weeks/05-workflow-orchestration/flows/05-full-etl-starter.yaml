@@ -1,0 +1,35 @@
+id: taxi_full_etl
+namespace: deng.week5
+
+inputs:
+  - id: year
+    type: INT
+    defaults: 2024
+    min: 2009
+  - id: month
+    type: INT
+    defaults: 1
+    min: 1
+    max: 12
+
+tasks:
+  - id: etl_month
+    type: io.kestra.plugin.scripts.shell.Commands
+    containerImage: deng-week5-ingest:local
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      pullPolicy: NEVER
+      networkMode: "{{ envs.taxi_network }}"
+      entryPoint: []
+      volumes:
+        - "{{ envs.taxi_data_dir }}:/app/data:ro"
+    env:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: "{{ envs.taxi_db }}"
+      POSTGRES_USER: "{{ envs.taxi_user }}"
+      POSTGRES_PASSWORD: "{{ envs.taxi_password }}"
+    commands:
+      - cd /app
+      # TODO: run etl_month.py with the selected inputs.
+      - echo "Complete the ETL command."
+      - exit 1

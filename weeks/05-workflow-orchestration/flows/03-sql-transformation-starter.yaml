@@ -1,0 +1,39 @@
+id: taxi_sql_transformation
+namespace: deng.week5
+
+inputs:
+  - id: year
+    type: INT
+    defaults: 2024
+    min: 2009
+  - id: month
+    type: INT
+    defaults: 1
+    min: 1
+    max: 12
+
+tasks:
+  - id: announce
+    type: io.kestra.plugin.core.log.Log
+    message: "Querying the sample for {{ inputs.year }}, month {{ inputs.month }}"
+
+  - id: transform_trips
+    type: io.kestra.plugin.jdbc.postgresql.Query
+    url: "jdbc:postgresql://postgres:5432/{{ envs.taxi_db }}"
+    username: "{{ envs.taxi_user }}"
+    password: "{{ envs.taxi_password }}"
+    fetchType: FETCH
+    sql: |
+      SELECT pickup_time,
+             dropoff_time,
+             trip_distance_miles,
+             NULL::numeric AS duration_minutes,       -- TODO: calculate duration
+             'not classified'::text AS trip_category  -- TODO: write a CASE expression
+      FROM public.taxi_trip_sample
+      WHERE source_month = make_date({{ inputs.year }}, {{ inputs.month }}, 1)
+      ORDER BY pickup_time, dropoff_time, trip_distance_miles
+      LIMIT 10;
+
+  - id: finished
+    type: io.kestra.plugin.core.log.Log
+    message: "The query finished. Inspect the transform_trips task outputs."

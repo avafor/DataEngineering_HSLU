@@ -95,4 +95,4 @@ Try entering `month = 13`. Check whether Kestra prevents submission or adjusts t
 2. Why can one flow process different months without editing its code?
 3. Does a successful logging task prove the taxi records exist in PostgreSQL? Explain.
 
-**Finish with:** one saved flow, two successful executions with different month values, and the log message from each. In the next exercise, we will replace the demonstration work with tasks that run and check the taxi pipeline.
+**Finish with:** one saved flow, two successful executions with different month values, and the log message from each. Next, follow [Run a small Python task](part-2-python.md).
