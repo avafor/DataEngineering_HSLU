@@ -74,4 +74,4 @@ Use the task logs to show which stage completed. Deliberately make the load task
 
 **Discuss:** Could the load task reuse the transformed output after a system interruption? What must be stored for that to work? Why does separating tasks improve observability, while still requiring a transaction and safe rerun design?
 
-The completed instructor flow is kept locally in [`instructor-notes/week-05/05-full-etl-three-tasks-solution.yaml`](../../instructor-notes/week-05/05-full-etl-three-tasks-solution.yaml) and is not published with the student materials.
+
