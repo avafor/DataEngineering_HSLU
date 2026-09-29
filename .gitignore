@@ -6,4 +6,6 @@ __pycache__/
 .venv/
 /examples/nyc-taxi/VALIDATION.md
 *.parquet
+/weeks/05-workflow-orchestration/data/*
+!/weeks/05-workflow-orchestration/data/README.md
 slides/
