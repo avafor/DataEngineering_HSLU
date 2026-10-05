@@ -1,0 +1,27 @@
+id: taxi_retry_exercise
+namespace: deng.week5
+
+tasks:
+  - id: temporary_failure
+    type: io.kestra.plugin.scripts.shell.Commands
+    containerImage: deng-week5-ingest:local
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      pullPolicy: NEVER
+      networkMode: "{{ envs.taxi_network }}"
+      entryPoint: []
+      volumes:
+        - "{{ envs.taxi_data_dir }}:/app/data"
+    retry:
+      # TODO: choose a retry strategy.
+      # TODO: choose the wait time between attempts.
+      # TODO: choose the maximum number of attempts.
+      type: constant
+      interval: PT5S
+      maxAttempts: 1
+    commands:
+      - |
+        # TODO: invent a temporary condition that makes attempt 1 fail but
+        # allows a later attempt to succeed without editing this flow.
+        echo "Complete the temporary-failure exercise."
+        exit 1

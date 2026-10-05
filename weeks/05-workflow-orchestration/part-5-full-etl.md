@@ -92,7 +92,14 @@ triggers:
       month: "..."
 ```
 
-Use `trigger.date` to obtain the scheduled date. The flow should receive the year and month represented by that date, rather than always using the input defaults.
+Do not place `trigger.date` inside the trigger's `inputs` block. In this Kestra version, that expression is evaluated before the scheduled execution context is available. Instead, use it in the Extract and Load task commands:
+
+```yaml
+--year {{ trigger.date is defined ? (trigger.date | date("yyyy")) : inputs.year }}
+--month {{ trigger.date is defined ? (trigger.date | date("M")) : inputs.month }}
+```
+
+For a scheduled or backfill execution, the tasks use the year and month from `trigger.date`. For a manual execution, `trigger.date` is unavailable, so the tasks use the values selected in the execution form.
 
 After saving the flow:
 
@@ -131,7 +138,22 @@ Kestra then makes at most three attempts. It waits 30 seconds between attempts.
 
 Retries can help with temporary failures, such as a short network interruption. They do not fix permanent failures, such as an incorrect file name, missing Python package, invalid code, or wrong database password. Retrying those errors only repeats the same failure.
 
-**Exercise:** Add the retry block to Extract. Temporarily make the first attempt fail, then allow the next attempt to succeed. Inspect the task logs and count the attempts. Afterwards, remove the deliberate failure.
+Open [07-retry-exercise.yaml](flows/07-retry-exercise.yaml). Your goal is to make attempt 1 fail and a later attempt succeed without editing the flow between attempts.
+
+Work in pairs and design a small temporary condition. It must persist outside the short-lived task container so that the next attempt can observe that the situation changed. One possible category is a marker file in the shared `data` directory, but devise the exact logic yourselves.
+
+Complete the flow:
+
+1. Choose a retry type, interval and maximum number of attempts.
+2. Write the command that detects your temporary condition.
+3. Make the first attempt exit with a non-zero status.
+4. Make a later attempt exit successfully.
+5. Add log messages that make the two outcomes easy to distinguish.
+6. Run the flow and compare **Attempt 1** with the successful attempt in Kestra.
+
+Before another run, reset whatever external state your solution created.
+
+**Discuss:** Why is a retry appropriate for a temporary network problem but not for invalid Python code or a wrong password? What could happen if retries repeatedly execute a task that is not safe to rerun?
 
 ## Restart exercise: continue from Load
 
