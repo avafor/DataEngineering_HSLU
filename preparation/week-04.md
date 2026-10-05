@@ -2,6 +2,8 @@
 
 [All preparation checklists](README.md) · [Week 4 materials](../weeks/04-transformation-and-serving/README.md)
 
+In Week 4, you will turn ingested records into data that a consumer can understand and use. You will inspect data-quality problems, define transformation rules, enrich taxi trips with zone names, create a daily report, and protect fictional customer identifiers through tokenization and database permissions. Before class, think about these questions: What makes a source record suitable for a report? When should a suspicious value be removed, corrected, or only flagged? Why might joining a lookup table accidentally hide records? Which identifiers should an analyst be allowed to see, and how could the system still recognize the same customer without exposing an email address? You do not need to prepare answers; bring your initial ideas to the session.
+
 Prepare these files and the Python image before travelling to class. This checklist does not require loading data, writing SQL, or completing the week's exercises.
 
 ## 1. Keep the Week 2 environment
