@@ -70,7 +70,7 @@ The tasks must have clear boundaries. In the provided three-script flow, the tas
 2. **Transform** reads it, calculates `duration_minutes` and `trip_category`, and writes `transformed.csv`.
 3. **Load** reads the CSV and inserts rows using the deterministic hash and `ON CONFLICT DO NOTHING`.
 
-Use the task logs to show which stage completed. Deliberately make the load task fail after the transform succeeds. Inspect the execution, then rerun or restart from the failed stage after fixing the cause.
+Use the task logs to show which stage completed. The restart exercise later in this file introduces a controlled Load failure.
 
 **Discuss:** Could the load task reuse the transformed output after a system interruption? What must be stored for that to work? Why does separating tasks improve observability, while still requiring a transaction and safe rerun design?
 
@@ -86,27 +86,23 @@ triggers:
     type: io.kestra.plugin.core.trigger.Schedule
     # Add a cron expression that runs on the first day of every month.
     cron: "..."
-    # Pass the scheduled year and month to the flow inputs.
-    inputs:
-      year: "..."
-      month: "..."
 ```
 
-Do not place `trigger.date` inside the trigger's `inputs` block. In this Kestra version, that expression is evaluated before the scheduled execution context is available. Instead, use it in the Extract and Load task commands:
+Do not place `trigger.date` inside the trigger's `inputs` block. In this Kestra version, that expression is evaluated before the scheduled execution context is available. Instead, use it in every task command that needs the target year and month:
 
 ```yaml
 --year {{ trigger.date is defined ? (trigger.date | date("yyyy")) : inputs.year }}
 --month {{ trigger.date is defined ? (trigger.date | date("M")) : inputs.month }}
 ```
 
-For a scheduled or backfill execution, the tasks use the year and month from `trigger.date`. For a manual execution, `trigger.date` is unavailable, so the tasks use the values selected in the execution form.
+For a scheduled or backfill execution, the date-dependent tasks use the year and month from `trigger.date`. For a manual execution, `trigger.date` is unavailable, so the tasks use the values selected in the execution form. Check, Extract, Load and Validate must all use the same rule.
 
 After saving the flow:
 
 1. Check that the schedule is enabled in Kestra.
 2. Inspect the trigger details and its next scheduled time.
 3. Run the flow manually once and compare it with a scheduled execution.
-4. Check the execution inputs to confirm which year and month the trigger supplied.
+4. Check the Extract and Load command logs to confirm which year and month the tasks used.
 
 **Discuss:** Which month should a run on 1 March process? Why should the schedule use the scheduled date rather than the machine's current date? How would you process a month that was missed while the schedule was disabled?
 

@@ -1,6 +1,6 @@
 # Week 5 — Workflow orchestration with Kestra
 
-[Module homepage](../../README.md) · [Downloads before class](preparation.md)
+[Module homepage](../../README.md) · [Downloads before class](../../preparation/week-05.md)
 
 **Everything needed for this week's practical is in this folder.** It has its own database, pgAdmin, Python loader, SQL, and configuration. You do not need to start another week's environment.
 
@@ -25,7 +25,7 @@ flowchart LR
     end
 ```
 
-One Compose file starts four separate containers. A flow starts an additional temporary Python container when needed. All use the Week 5 network. The Python image contains our local `ingest_months.py` and its dependencies.
+One Compose file starts four separate containers. A flow starts an additional temporary Python container when needed. All use the Week 5 network. The Python image contains the Week 5 Python scripts and their dependencies.
 
 ## 2. Set up this week's folder
 
@@ -35,7 +35,7 @@ Start Docker. From the repository root:
 cd weeks/05-workflow-orchestration
 ```
 
-**All remaining terminal commands run here.** Complete the [local preparation checklist](preparation.md) to download the images and taxi files and build the Python image.
+**All remaining terminal commands run here.** Complete the [Week 5 preparation checklist](../../preparation/week-05.md) to download the images and taxi files and build the Python image.
 
 Copy `.env.example` to `.env` once:
 

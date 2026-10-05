@@ -33,7 +33,7 @@ The flow joins the `deng-week5` network and mounts this folder's `data/` directo
 
 ## 2. Prepare the environment
 
-Complete the [startup instructions](README.md) and [downloads](preparation.md). From this Week 5 folder:
+Complete the [startup instructions](README.md) and [downloads](../../preparation/week-05.md). From this Week 5 folder:
 
 ```sh
 docker build -t deng-week5-ingest:local .

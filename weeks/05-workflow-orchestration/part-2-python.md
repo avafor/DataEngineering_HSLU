@@ -10,7 +10,7 @@ This flow does not download taxi files or connect to a database. There are no da
 
 ## 1. Predict the result
 
-Complete the [preparation](preparation.md) and start the environment with `docker compose up -d`. This exercise uses the standard `python:3.13.11-slim-bookworm` image listed in preparation. If you prepared before this exercise was added, download it with `docker pull python:3.13.11-slim-bookworm`.
+Complete the [preparation](../../preparation/week-05.md) and start the environment with `docker compose up -d`. This exercise uses the standard `python:3.13.11-slim-bookworm` image listed in preparation. If you prepared before this exercise was added, download it with `docker pull python:3.13.11-slim-bookworm`.
 
 Open [02-python-starter.yaml](flows/02-python-starter.yaml). It has three tasks:
 
