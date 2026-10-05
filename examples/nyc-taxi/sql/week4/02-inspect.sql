@@ -7,9 +7,9 @@ FROM public.taxi_trips_monthly WHERE passenger_count IS NULL;
 SELECT COUNT(*) AS negative_fares
 FROM public.taxi_trips_monthly WHERE fare_amount_usd < 0;
 
-SELECT COUNT(*) AS dropoff_before_pickup
-FROM public.taxi_trips_monthly WHERE dropoff_time < pickup_time;
+SELECT COUNT(*) AS nonpositive_durations
+FROM public.taxi_trips_monthly WHERE dropoff_time <= pickup_time;
 
 SELECT * FROM public.taxi_trips_monthly
-WHERE fare_amount_usd < 0 OR dropoff_time < pickup_time
+WHERE fare_amount_usd < 0 OR dropoff_time <= pickup_time
 LIMIT 10;

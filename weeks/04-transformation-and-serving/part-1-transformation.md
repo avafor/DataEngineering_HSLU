@@ -37,7 +37,7 @@ docker compose up -d --wait
 
 Open [02-inspect.sql](../../examples/nyc-taxi/sql/week4/02-inspect.sql) in your editor. Copy each query into pgAdmin and execute it separately. `WHERE` keeps rows meeting a condition; `IS NULL` finds missing values.
 
-Record the number of missing passenger counts, negative fares, and drop-offs before pickups. Read a few matching records. A count of zero is a valid result; your loaded data may not contain every issue.
+Record the number of missing passenger counts, negative fares, and trips whose drop-off is at or before pickup. The last condition also finds zero-duration trips. Read a few matching records. A count of zero is a valid result; your loaded data may not contain every issue.
 
 **Discuss:** Is a missing passenger count the same as zero passengers? Could a negative fare represent an adjustment? What additional information would help you decide?
 

@@ -61,8 +61,6 @@ Open [05-tokenization.sql](../../examples/nyc-taxi/sql/week4/05-tokenization.sql
 
 Use pgAdmin's Query Tool connected to `ny_taxi` with your Week 2 administrator account. Run the entire [05-tokenization.sql](../../examples/nyc-taxi/sql/week4/05-tokenization.sql) file. Its `BEGIN` and `COMMIT` keep the setup in one transaction.
 
-If you already completed the earlier version labelled Week 3, run this setup again to create the `week4_private` and `week4_shared` schemas and `deng_week4_analyst` role used below. The earlier database objects remain separate; your taxi tables are unchanged.
-
 `GRANT` gives a permission; `REVOKE` removes a permission. `PUBLIC` here means all database roles, not the schema named `public`. The analyst receives schema `USAGE` (permission to access objects in that namespace) and `SELECT` on the shared view. The analyst gets no access to the private schema.
 
 The view is owned by the administrator. PostgreSQL's default view permissions allow its owner to read the underlying tables while granting the analyst only access to the view's selected fields.
