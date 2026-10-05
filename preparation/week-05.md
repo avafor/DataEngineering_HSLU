@@ -2,6 +2,8 @@
 
 [All preparation checklists](README.md) · [Module homepage](../README.md)
 
+In Week 5, you will move from running individual Python and SQL commands to coordinating a complete data pipeline with Kestra. You will split the NYC Taxi pipeline into tasks, control their order, schedule monthly executions, recover missed months with backfills, retry temporary failures, and stop the pipeline when its source or output is invalid. Before class, think about these questions: Who should start a pipeline when nobody is watching? What should happen when one task fails after earlier tasks have succeeded? How can a rerun avoid loading duplicate records? How would you discover that a scheduled month was missed or produced no data? You do not need to prepare answers; bring your initial ideas to the session.
+
 Prepare Week 5 from its self-contained folder. Earlier weeks' environments are not required.
 
 ```sh
