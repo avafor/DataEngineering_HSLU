@@ -1,0 +1,63 @@
+id: taxi_restart_three_scripts
+namespace: deng.week5
+
+inputs:
+  - id: year
+    type: INT
+    defaults: 2024
+  - id: month
+    type: INT
+    defaults: 1
+    min: 1
+    max: 12
+
+tasks:
+  - id: extract
+    type: io.kestra.plugin.scripts.shell.Commands
+    containerImage: deng-week5-ingest:local
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      pullPolicy: NEVER
+      networkMode: "{{ envs.taxi_network }}"
+      entryPoint: []
+      volumes:
+        - "{{ envs.taxi_data_dir }}:/app/data"
+    commands:
+      - python /app/extract_month.py --year {{ inputs.year }} --month {{ inputs.month }}
+
+  - id: transform
+    type: io.kestra.plugin.scripts.shell.Commands
+    containerImage: deng-week5-ingest:local
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      pullPolicy: NEVER
+      networkMode: "{{ envs.taxi_network }}"
+      entryPoint: []
+      volumes:
+        - "{{ envs.taxi_data_dir }}:/app/data"
+    commands:
+      - python /app/transform_month.py
+
+  - id: load
+    type: io.kestra.plugin.scripts.shell.Commands
+    containerImage: deng-week5-ingest:local
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      pullPolicy: NEVER
+      networkMode: "{{ envs.taxi_network }}"
+      entryPoint: []
+      volumes:
+        - "{{ envs.taxi_data_dir }}:/app/data:ro"
+    env:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: "{{ envs.taxi_db }}"
+      POSTGRES_USER: "{{ envs.taxi_user }}"
+      POSTGRES_PASSWORD: "{{ envs.taxi_password }}"
+    commands:
+      - >-
+        test -f /app/data/load_ready || (echo 'Practice failure: create data/load_ready, then restart this execution.'; exit 1)
+      - python /app/load_month.py --year {{ inputs.year }} --month {{ inputs.month }}
+
+# Correction after the failed run: create the marker file locally, without
+# editing this flow, then use Restart on the same failed execution:
+#   touch data/load_ready
