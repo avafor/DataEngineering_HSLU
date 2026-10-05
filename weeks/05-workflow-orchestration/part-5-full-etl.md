@@ -123,6 +123,71 @@ Scheduling is only one way to start a flow. Kestra also supports:
 
 Kestra plugins add triggers for systems such as Kafka, SQS, databases, and cloud-storage services. The right trigger depends on how the source announces new data: a clock, an event, a new file, or the completion of another workflow.
 
+## Source-availability check
+
+Before adding another task, consider these questions:
+
+- What happens if the selected TLC file has not been published yet?
+- Should the pipeline begin its transformations before it knows that the source exists?
+- What error would a student or operator see if the download URL returned `404 Not Found`?
+- Which task should fail: Extract, Transform or Load?
+- Would retrying help if the server were temporarily unavailable? Would it help if the file name were wrong?
+
+One solution is to check the source before downloading the complete file:
+
+```text
+Check source → Extract → Transform → Load
+```
+
+Open [`check_source.py`](check_source.py). The `check_source()` function constructs the monthly TLC URL and sends a small request to verify that the file is available.
+
+The script is part of the ingestion image. Rebuild the image once before running the four-task flow:
+
+```sh
+docker build -t deng-week5-ingest:local .
+```
+
+PostgreSQL, pgAdmin and Kestra do not need to be restarted after this build.
+
+Open [08-four-task-etl.yaml](flows/08-four-task-etl.yaml) and identify where it calls:
+
+```sh
+python /app/check_source.py --year <year> --month <month>
+```
+
+Run the flow once for a published month and once for a future or unavailable month. Compare the `check_source` logs. Confirm that Extract does not start when the check fails.
+
+**Discuss:** Is checking first a guarantee that the later download will succeed? What could change between the check and the download?
+
+## Post-load validation
+
+A successful Load task only proves that the database accepted the commands. It does not prove that the expected data was loaded.
+
+Before looking at the solution, discuss:
+
+- What is the simplest evidence that the selected month was loaded?
+- Which transformed values should be allowed in `trip_category`?
+- Should a failed validation remove the rows that Load already committed?
+- Who should investigate when Load succeeds but validation fails?
+
+Open [`validate_month.py`](validate_month.py). It checks that the selected month contains at least one row and that every trip category is expected.
+
+The separate [09-five-task-etl.yaml](flows/09-five-task-etl.yaml) adds this final stage:
+
+```text
+Check source → Extract → Transform → Load → Validate
+```
+
+Rebuild the image because it now contains `validate_month.py`:
+
+```sh
+docker build -t deng-week5-ingest:local .
+```
+
+Run the flow for an available month and inspect the Validate logs. Then run `validate_month.py` for a month that was not loaded and explain why the task fails.
+
+**Discuss:** Why should a failed validation fail the task instead of only printing a warning?
+
 ## Retry exercise
 
 Some failures are temporary. A network request may time out, or PostgreSQL may be unavailable for a short period. Add a retry policy to the Extract task:

@@ -1,0 +1,102 @@
+id: taxi_full_etl_five_tasks
+namespace: deng.week5
+
+inputs:
+  - id: year
+    type: INT
+    defaults: 2024
+    min: 2009
+  - id: month
+    type: INT
+    defaults: 1
+    min: 1
+    max: 12
+
+triggers:
+  - id: monthly_schedule
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "@monthly"
+
+tasks:
+  - id: check_source
+    type: io.kestra.plugin.scripts.shell.Commands
+    containerImage: deng-week5-ingest:local
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      pullPolicy: NEVER
+      networkMode: "{{ envs.taxi_network }}"
+      entryPoint: []
+    commands:
+      - >-
+        python /app/check_source.py
+        --year {{ trigger.date is defined ? (trigger.date | date("yyyy")) : inputs.year }}
+        --month {{ trigger.date is defined ? (trigger.date | date("M")) : inputs.month }}
+
+  - id: extract
+    type: io.kestra.plugin.scripts.shell.Commands
+    containerImage: deng-week5-ingest:local
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      pullPolicy: NEVER
+      networkMode: "{{ envs.taxi_network }}"
+      entryPoint: []
+      volumes:
+        - "{{ envs.taxi_data_dir }}:/app/data"
+    commands:
+      - >-
+        python /app/extract_month.py
+        --year {{ trigger.date is defined ? (trigger.date | date("yyyy")) : inputs.year }}
+        --month {{ trigger.date is defined ? (trigger.date | date("M")) : inputs.month }}
+
+  - id: transform
+    type: io.kestra.plugin.scripts.shell.Commands
+    containerImage: deng-week5-ingest:local
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      pullPolicy: NEVER
+      networkMode: "{{ envs.taxi_network }}"
+      entryPoint: []
+      volumes:
+        - "{{ envs.taxi_data_dir }}:/app/data"
+    commands:
+      - python /app/transform_month.py
+
+  - id: load
+    type: io.kestra.plugin.scripts.shell.Commands
+    containerImage: deng-week5-ingest:local
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      pullPolicy: NEVER
+      networkMode: "{{ envs.taxi_network }}"
+      entryPoint: []
+      volumes:
+        - "{{ envs.taxi_data_dir }}:/app/data:ro"
+    env:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: "{{ envs.taxi_db }}"
+      POSTGRES_USER: "{{ envs.taxi_user }}"
+      POSTGRES_PASSWORD: "{{ envs.taxi_password }}"
+    commands:
+      - >-
+        python /app/load_month.py
+        --year {{ trigger.date is defined ? (trigger.date | date("yyyy")) : inputs.year }}
+        --month {{ trigger.date is defined ? (trigger.date | date("M")) : inputs.month }}
+
+  - id: validate
+    type: io.kestra.plugin.scripts.shell.Commands
+    containerImage: deng-week5-ingest:local
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      pullPolicy: NEVER
+      networkMode: "{{ envs.taxi_network }}"
+      entryPoint: []
+    env:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: "{{ envs.taxi_db }}"
+      POSTGRES_USER: "{{ envs.taxi_user }}"
+      POSTGRES_PASSWORD: "{{ envs.taxi_password }}"
+    commands:
+      - >-
+        python /app/validate_month.py
+        --year {{ trigger.date is defined ? (trigger.date | date("yyyy")) : inputs.year }}
+        --month {{ trigger.date is defined ? (trigger.date | date("M")) : inputs.month }}

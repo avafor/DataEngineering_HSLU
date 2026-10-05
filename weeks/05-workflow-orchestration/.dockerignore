@@ -2,8 +2,10 @@
 !requirements.lock
 !ingest_months.py
 !etl_month.py
+!check_source.py
 !extract_month.py
 !transform_month.py
 !load_month.py
+!validate_month.py
 !sql/
 !sql/**
