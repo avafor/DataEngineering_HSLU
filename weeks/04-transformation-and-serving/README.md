@@ -40,18 +40,7 @@ Follow these in order:
 
 Use your existing PostgreSQL, pgAdmin, and Python image. No cloud account or new service is required. The report uses `public.taxi_trips_monthly`, loaded in Week 2 Part 3, Step 7. Finish loading at least one month before starting; you can also work with the full year of 2024.
 
-## 3. Apply the decisions to your project
 
-With your project partner, write down:
-
-- **Consumer:** who uses the result, and for what decision?
-- **Changes:** three concrete transformations your source needs.
-- **Rule:** one definition of a valid record or a metric, with an example.
-- **Placement:** what happens before loading, and what happens after loading?
-- **Cadence:** how fresh must the result be, and can the source provide that freshness?
-- **Access:** which fields should the consumer see, and which should be restricted?
-
-Update your pipeline diagram and explain one trade-off. For example, keeping source records helps you investigate and rebuild a report, but access to sensitive source fields must be restricted.
 
 ## Finish with
 
