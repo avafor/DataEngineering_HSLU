@@ -1,19 +1,20 @@
--- This metric describes our selected records, not all NYC taxi revenue.
+-- Week 4 report exercise starter.
+-- Replace every TODO placeholder before executing the CREATE VIEW statement.
 CREATE OR REPLACE VIEW public.daily_zone_report AS
 SELECT
     pickup_date,
     pickup_zone_id,
     pickup_zone_name,
-    COUNT(*) AS trip_count,
-    ROUND(SUM(CAST(fare_amount_usd AS NUMERIC)), 2) AS fare_total_usd
-FROM public.trips_reviewed
-WHERE report_status = 'included'
-GROUP BY pickup_date, pickup_zone_id, pickup_zone_name;
+    TODO_COUNT AS trip_count,
+    TODO_FARE_TOTAL AS fare_total_usd
+FROM TODO_SOURCE
+WHERE TODO_FILTER
+GROUP BY TODO_GROUPS;
 
 SELECT * FROM public.daily_zone_report
 ORDER BY pickup_date, fare_total_usd DESC;
 
--- These counts must match; grouping must not lose or multiply included rows.
+-- Verification: these counts must match.
 SELECT COUNT(*) AS included_records
 FROM public.trips_reviewed WHERE report_status = 'included';
 

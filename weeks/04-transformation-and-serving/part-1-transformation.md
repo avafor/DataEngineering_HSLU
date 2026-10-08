@@ -102,7 +102,7 @@ Read [03-transform.sql](../../examples/nyc-taxi/sql/week4/03-transform.sql). Bef
 | `CREATE OR REPLACE VIEW` | Saves a query under a name; rerunning updates its definition. |
 | `t` and `z` | Short aliases for the trip and zone tables. For example, `t.pickup_time` selects the trip table's pickup time. |
 | `CAST(pickup_time AS DATE)` | Returns the date part of the pickup timestamp. |
-| `EXTRACT(EPOCH FROM (...)) / 60.0` | Converts the difference between timestamps into minutes. |
+| `EXTRACT(EPOCH FROM (dropoff_time - pickup_time)) / 60.0` | Subtracts pickup from drop-off to create a time interval. `EPOCH` converts that interval to its total number of seconds; dividing by `60.0` converts the result to decimal minutes. For example, 1,650 seconds becomes 27.5 minutes. |
 | `LEFT JOIN ... ON ...` | Looks up the pickup-zone identifier; keeps the trip even if no mapping exists. |
 | `CASE ... WHEN ... ELSE ... END` | Assigns a reporting status using the first matching condition. |
 
@@ -143,22 +143,117 @@ The counts must match. The left join retains unmatched trips, and the unique loo
 
 ## Step 4 — Build a report for a consumer
 
-Our consumer is an analyst exploring historical trips in the loaded dataset. The requested output is one row per **pickup date and pickup zone**, containing a trip count and the sum of included fare amounts.
+Our consumer is an analyst exploring historical trips. Build a report with this **grain**:
 
-Read [04-report.sql](../../examples/nyc-taxi/sql/week4/04-report.sql):
+> One row represents one pickup date in one pickup zone.
 
-- `WHERE report_status = 'included'` applies our reporting rules.
-- `GROUP BY` gathers records with the same date and zone.
-- `COUNT(*)` counts records in each group; `SUM` adds their fares.
-- `CAST(... AS NUMERIC)` performs the aggregation using decimal arithmetic; it cannot recover precision already lost in the stored values.
-- `ROUND(..., 2)` presents the total with two decimal places.
-- `AS` labels a result column, such as `fare_total_usd`.
+Each row must contain the date, zone identifier, zone name, number of included trips, and sum of their fare amounts.
 
-Run the file's statements individually. The last two queries must return the same count: every included record belongs to exactly one report group. `COALESCE(..., 0)` shows zero if the report is empty instead of a missing sum.
+### Understand the required result
 
-The metric is **the sum of nonnegative fare amounts for records meeting our rules**. It is not total revenue, profit, or the total charged including all extras. Its date comes from pickup time, not from the source-file month.
+Suppose `public.trips_reviewed` contains these five records:
 
-**Finish with:** a daily report, matching included/reported counts, and a sentence explaining what the total measures and what it leaves out.
+| Pickup date | Pickup zone | Fare | Status |
+|---|---|---:|---|
+| 2024-01-01 | JFK Airport | 50.00 | `included` |
+| 2024-01-01 | JFK Airport | 35.00 | `included` |
+| 2024-01-01 | Upper East Side South | 20.00 | `included` |
+| 2024-01-02 | JFK Airport | 45.00 | `included` |
+| 2024-01-02 | Upper East Side South | -10.00 | `negative_fare` |
+
+Your report should produce:
+
+| Pickup date | Pickup zone | Trip count | Fare total |
+|---|---|---:|---:|
+| 2024-01-01 | JFK Airport | 2 | 85.00 |
+| 2024-01-01 | Upper East Side South | 1 | 20.00 |
+| 2024-01-02 | JFK Airport | 1 | 45.00 |
+
+The negative-fare record remains available in `public.trips_reviewed`, but it does not enter this report because its status is not `included`.
+
+### 1. Inspect the input
+
+Run this query first:
+
+```sql
+SELECT pickup_date, pickup_zone_id, pickup_zone_name,
+       fare_amount_usd, report_status
+FROM public.trips_reviewed
+ORDER BY pickup_date, pickup_zone_id
+LIMIT 20;
+```
+
+Before writing the report, answer:
+
+1. Which condition selects records allowed into the report?
+2. Which three columns define a report group?
+3. Which aggregate function counts the records in a group?
+4. Which aggregate function adds the fares in a group?
+
+### 2. Complete the report query
+
+Open [04-report.sql](../../examples/nyc-taxi/sql/week4/04-report.sql). Replace all five `TODO` placeholders:
+
+| Placeholder | What you must write |
+|---|---|
+| `TODO_COUNT` | An aggregate expression that counts records in each group. |
+| `TODO_FARE_TOTAL` | Cast each fare to `NUMERIC`, add the fares, and round the result to two decimal places. |
+| `TODO_SOURCE` | The reviewed view created in Step 3. |
+| `TODO_FILTER` | A condition that keeps only records whose status is `included`. |
+| `TODO_GROUPS` | The three selected columns that identify one date-and-zone group. |
+
+Use this SQL toolbox:
+
+| SQL element | Purpose | Small example |
+|---|---|---|
+| `WHERE` | Keeps records that meet a condition. | `WHERE colour = 'blue'` |
+| `GROUP BY` | Puts records with the same values into groups. | `GROUP BY order_date` |
+| `COUNT(*)` | Counts records in each group. | Three records become `3`. |
+| `SUM(column)` | Adds values in each group. | 50 + 35 becomes `85`. |
+| `CAST(value AS NUMERIC)` | Uses a decimal number for the calculation. | `CAST(fare AS NUMERIC)` |
+| `ROUND(value, 2)` | Rounds a decimal result to two places. | 85.126 becomes 85.13. |
+| `AS` | Gives an output column a name. | `COUNT(*) AS trip_count` |
+
+Execute the complete `CREATE OR REPLACE VIEW` statement. If PostgreSQL reports a name beginning with `todo_`, a placeholder is still present.
+
+### 3. Inspect one report group
+
+Run the report query included in the starter file:
+
+```sql
+SELECT * FROM public.daily_zone_report
+ORDER BY pickup_date, fare_total_usd DESC;
+```
+
+The report orders by `pickup_date` first. Within the same date, it orders the largest fare total first.
+
+Choose one date and zone from the report and inspect the records that produced it. Replace the example values below with values from your result:
+
+```sql
+SELECT fare_amount_usd, report_status
+FROM public.trips_reviewed
+WHERE pickup_date = DATE '2024-01-01'
+  AND pickup_zone_id = 132
+  AND report_status = 'included';
+```
+
+Count these records manually and add their fares. Do they match `trip_count` and `fare_total_usd` in the report?
+
+### 4. Check that grouping did not lose records
+
+Run the final two queries in the starter file. The first counts the included input records. The second adds the group counts in the report. The numbers must match because every included record must belong to exactly one report group.
+
+`SUM(trip_count)` returns `NULL` when the report has no rows. `COALESCE(SUM(trip_count), 0)` displays `0` instead, which makes the empty-report result easier to interpret.
+
+### 5. Explain the metric
+
+Complete this sentence:
+
+> `fare_total_usd` is the sum of ___ for ___, grouped by ___.
+
+The intended metric is the sum of nonnegative fare amounts for records meeting our rules, grouped by pickup date and pickup zone. It is not total revenue, profit, or the complete amount charged to passengers. Its date comes from pickup time, not from the source-file month. Casting to `NUMERIC` supports decimal aggregation, but it cannot recover precision already lost in stored values.
+
+**Finish with:** your completed SQL, a daily report, matching included/reported counts, and a sentence explaining what the total measures and excludes.
 
 ## Step 5 — Change a rule and explain its effect
 

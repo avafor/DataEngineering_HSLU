@@ -56,11 +56,10 @@ class Week4Checks(unittest.TestCase):
         with self.engine.begin() as connection:
             connection.execute(text((SQL / "week4" / name).read_text()))
 
-    def test_report_counts_rules_and_rerun(self):
+    def test_transformation_rules_and_rerun(self):
         self.run_file("02-inspect.sql")
         for _ in range(2):
             self.run_file("03-transform.sql")
-            self.run_file("04-report.sql")
         with self.engine.connect() as connection:
             self.assertEqual(connection.scalar(text("SELECT count(*) FROM public.taxi_trips_monthly")), 7)
             self.assertEqual(connection.scalar(text("SELECT count(*) FROM public.trips_reviewed")), 7)
@@ -69,16 +68,20 @@ class Week4Checks(unittest.TestCase):
             self.assertEqual(statuses, {"included": 2, "missing_required_value": 2,
                                        "nonpositive_duration": 1, "negative_fare": 1,
                                        "unmatched_pickup_zone": 1})
-            row = connection.execute(text("SELECT trip_count, fare_total_usd FROM public.daily_zone_report")).one()
-            self.assertEqual(tuple(row), (2, 30))
             self.assertEqual(connection.scalar(text(
                 "SELECT duration_minutes FROM public.trips_reviewed WHERE passenger_count IS NULL")), 30)
         changed = (SQL / "week4/03-transform.sql").read_text().replace(
             "        WHEN t.fare_amount_usd < 0 THEN 'negative_fare'\n", "")
         with self.engine.begin() as connection:
             connection.execute(text(changed))
-            row = connection.execute(text("SELECT trip_count, fare_total_usd FROM public.daily_zone_report")).one()
-            self.assertEqual(tuple(row), (3, 25))
+            self.assertEqual(connection.scalar(text(
+                "SELECT count(*) FROM public.trips_reviewed WHERE report_status = 'included'")), 3)
+
+    def test_report_file_is_an_exercise_starter(self):
+        starter = (SQL / "week4/04-report.sql").read_text()
+        for placeholder in ("TODO_COUNT", "TODO_FARE_TOTAL", "TODO_SOURCE",
+                            "TODO_FILTER", "TODO_GROUPS"):
+            self.assertIn(placeholder, starter)
 
     def test_zone_reload_and_invalid_file_rollback(self):
         with TemporaryDirectory() as directory:
@@ -94,19 +97,17 @@ class Week4Checks(unittest.TestCase):
             self.assertEqual(connection.execute(text("SELECT zone FROM public.taxi_zones")).scalar_one(),
                              "Zone, with comma")
 
-    def test_switch_existing_views_to_monthly_table(self):
+    def test_switch_existing_review_view_to_monthly_table(self):
         old_view = (SQL / "week4/03-transform.sql").read_text().replace(
             "public.taxi_trips_monthly", "public.taxi_trips").replace(
             "END AS report_status,\n    t.source_month", "END AS report_status")
         with self.engine.begin() as connection:
             connection.execute(text((SQL / "schema.sql").read_text()))
             connection.execute(text(old_view))
-        self.run_file("04-report.sql")
         self.run_file("03-transform.sql")
-        self.run_file("04-report.sql")
         with self.engine.connect() as connection:
             self.assertEqual(connection.scalar(text(
-                "SELECT sum(trip_count) FROM public.daily_zone_report")), 2)
+                "SELECT count(*) FROM public.trips_reviewed")), 7)
 
     def test_token_stability_and_access_boundary(self):
         self.run_file("05-tokenization.sql")
