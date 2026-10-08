@@ -33,6 +33,7 @@ By the end of the module, you should be able to:
 - Week 3 — Initial project presentations (no practical lab)
 - [Week 4 — Transformation, serving, and protecting identifiers](weeks/04-transformation-and-serving/README.md)
 - [Week 5 — Workflow orchestration with Kestra](weeks/05-workflow-orchestration/README.md)
+- [Week 6 — Cloud platform and Terraform](weeks/06-cloud-platform-and-terraform/README.md)
 
 ## Recurring example
 
