@@ -245,15 +245,6 @@ Run the final two queries in the starter file. The first counts the included inp
 
 `SUM(trip_count)` returns `NULL` when the report has no rows. `COALESCE(SUM(trip_count), 0)` displays `0` instead, which makes the empty-report result easier to interpret.
 
-### 5. Explain the metric
-
-Complete this sentence:
-
-> `fare_total_usd` is the sum of ___ for ___, grouped by ___.
-
-The intended metric is the sum of nonnegative fare amounts for records meeting our rules, grouped by pickup date and pickup zone. It is not total revenue, profit, or the complete amount charged to passengers. Its date comes from pickup time, not from the source-file month. Casting to `NUMERIC` supports decimal aggregation, but it cannot recover precision already lost in stored values.
-
-**Finish with:** your completed SQL, a daily report, matching included/reported counts, and a sentence explaining what the total measures and excludes.
 
 ## Step 5 — Change a rule and explain its effect
 
