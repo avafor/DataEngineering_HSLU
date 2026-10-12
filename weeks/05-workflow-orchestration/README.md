@@ -27,49 +27,17 @@ flowchart LR
 
 One Compose file starts four separate containers. A flow starts an additional temporary Python container when needed. All use the Week 5 network. The Python image contains the Week 5 Python scripts and their dependencies.
 
-## 2. Set up this week's folder
+## 2. Confirm that preparation is complete
 
-Start Docker. From the repository root:
+Before class, complete the [Week 5 preparation checklist](../../preparation/week-05.md). It creates the local `.env`, configures the data-folder path, downloads the required images and taxi files, builds the Python image, and validates the Compose configuration.
+
+At the start of class, open a terminal and enter this week's self-contained folder:
 
 ```sh
 cd weeks/05-workflow-orchestration
 ```
 
-**All remaining terminal commands run here.** Complete the [Week 5 preparation checklist](../../preparation/week-05.md) to download the images and taxi files and build the Python image.
-
-Copy `.env.example` to `.env` once:
-
-```sh
-cp .env.example .env
-```
-
-On Windows PowerShell, use `Copy-Item .env.example .env`. If `.env` already exists, keep it and add any missing settings from `.env.example`.
-
-Open `.env` and replace the four example passwords. The Kestra login password needs at least eight characters, including an uppercase letter, a lowercase letter and a number. `KESTRA_USER` is an email-format local login name.
-
-| Settings | Used for |
-|---|---|
-| `KESTRA_USER`, `KESTRA_PASSWORD` | Signing into Kestra |
-| `KESTRA_DB_PASSWORD` | Kestra connecting to its internal database |
-| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Connecting to the taxi database |
-| `PGADMIN_DEFAULT_EMAIL`, `PGADMIN_DEFAULT_PASSWORD` | Signing into pgAdmin |
-| `TAXI_DATA_DIR` | The absolute path to this folder's `data/` directory |
-
-Find your data folder's absolute path:
-
-```sh
-cd data
-pwd
-cd ..
-```
-
-On Windows PowerShell, use `(Resolve-Path data).Path.Replace('\', '/')` instead. Put the result in `.env`, for example:
-
-```dotenv
-TAXI_DATA_DIR=/Users/your-name/course-repo/weeks/05-workflow-orchestration/data
-```
-
-This is the only absolute path to configure. Docker needs the laptop path when Kestra starts a task container and mounts the prepared files. Keep `.env` private; Git ignores it.
+**All remaining terminal commands in this week's practical run here.** Start Docker Desktop or your Docker engine before continuing.
 
 ## 3. Start the environment
 
@@ -124,12 +92,6 @@ docker compose up -d
 ```
 
 Named volumes preserve the taxi records, pgAdmin settings and Kestra history. `docker compose down` removes containers but keeps these volumes. `docker compose down -v` also deletes this week's stored data and settings.
-
-## If you used the earlier Week 5 setup
-
-Keep the existing Week 5 `.env` and its Kestra passwords. Add the taxi database and pgAdmin settings from `.env.example`, set `PGADMIN_PORT=8086`, and point `TAXI_DATA_DIR` to this week's `data` folder. Download or copy the prepared Parquet files into that folder and build the local image as described in preparation.
-
-Then run `docker compose up -d` here. The project name and Kestra volume names remain the same, so its existing history is retained. The new Week 5 taxi database starts empty; the Week 2 database remains separate. Existing saved ingestion flows must be updated from this folder's current YAML because they previously referenced a different Python image.
 
 ## Troubleshooting
 
