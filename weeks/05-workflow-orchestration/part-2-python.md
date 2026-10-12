@@ -4,7 +4,7 @@
 
 ## Goal
 
-Move from writing a log message to running Python inside a workflow. You will construct a taxi filename and URL, observe task order, and investigate a deliberate failure. Allow about 15–20 minutes.
+You will construct a taxi filename and URL, observe task order, and investigate a deliberate failure. Allow about 15–20 minutes.
 
 This flow does not download taxi files or connect to a database. There are no database credentials, custom network settings, or file mounts in this flow.
 
@@ -26,11 +26,38 @@ filename = f"yellow_tripdata_{year}-{month:02d}.parquet"
 
 `:02d` formats the month as a two-digit integer: `2` becomes `02`.
 
-## 2. Run the starter
+## 2. Import and observe the working starter
 
-Create a new flow in Kestra using the starter. Keep the earlier `taxi_intro` flow. Save this flow as `taxi_python`, then execute it with year 2024 and month 2.
+### What is the goal of this step?
 
-Open the logs for `prepare_filename`. Expect:
+The file [02-python-starter.yaml](flows/02-python-starter.yaml) is a **workflow definition**. It tells Kestra which inputs and tasks the workflow contains. It is not a Python file and you do not run it as a terminal command.
+
+In this step, you will copy that definition into Kestra, execute it, and observe how Kestra runs three tasks in order. **There is no missing code to complete in Step 2.** The starter already performs its intended job: it constructs and prints a filename. The coding exercise begins in Step 3, where you extend the working flow to construct a URL.
+
+### What should you do?
+
+1. Open [02-python-starter.yaml](flows/02-python-starter.yaml) in your editor or browser.
+2. Copy the **entire file**, beginning with `id: taxi_python` and ending with the `finished` task.
+3. In Kestra, open **Flows** and choose **Create flow**.
+4. Open the YAML/source editor and replace its example content with the copied YAML.
+5. Save the flow. You should now have a new flow with:
+   - namespace `deng.week5`;
+   - flow ID `taxi_python`; and
+   - three tasks: `announce`, `prepare_filename`, and `finished`.
+6. Keep the earlier `taxi_intro` flow. This is a second flow, not a replacement for Part 1.
+7. Choose **Execute**, enter `year = 2024` and `month = 2`, and start the execution.
+
+Editing the YAML file on your laptop does not automatically update the saved flow in Kestra. For this exercise, make later changes in Kestra's flow editor and save them there.
+
+### What should you inspect?
+
+Open the execution and inspect its **Topology**, **Gantt**, or task list. Confirm that the tasks ran in this order:
+
+```text
+announce → prepare_filename → finished
+```
+
+Then open **Logs** and select the `prepare_filename` task. Expect:
 
 ```text
 yellow_tripdata_2024-02.parquet
@@ -52,15 +79,24 @@ Kestra substitutes the input expressions before executing Python. With month 2, 
 
 **Discuss:** Which task runs Python? Which tasks simply write Kestra log messages? Why does the Python task need an image?
 
-## 3. Your task — build the source URL
+## 3. Coding exercise — extend the starter to build the source URL
 
-In the Python task, add code that constructs and prints the complete URL using `filename` and this base address:
+The starter currently prints only a filename. Your solution must make it print the complete source URL as well.
+
+In the `prepare_filename` Python task, add code that constructs and prints the URL using the existing `filename` variable and this base address:
 
 ```text
 https://d37ci6vzurychx.cloudfront.net/trip-data/
 ```
 
 Do not hard-code the year or month into the URL. Save your change in Kestra and execute for months 1 and 2.
+
+You are finished when the task prints both lines:
+
+```text
+yellow_tripdata_2024-02.parquet
+https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-02.parquet
+```
 
 **Check:** the logs should show a different filename and URL for each month. For February, the URL must end in `yellow_tripdata_2024-02.parquet`. This does not check whether the file exists at the source.
 

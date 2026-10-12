@@ -89,55 +89,7 @@ Open the execution history and compare both runs. You have one workflow definiti
 
 You now have one saved flow called `taxi_intro` and two executions in its history. Test what Kestra does when you try to give that saved flow a different identity.
 
-### Part A — Try to rename the saved flow
-
-1. Open `taxi_intro` and note how many executions it has.
-2. Open the flow's **Edit** view.
-3. Change only this line:
-
-   ```yaml
-   id: taxi_intro
-   ```
-
-   to:
-
-   ```yaml
-   id: taxi_intro_copy
-   ```
-
-4. Try to save the flow.
-5. Record exactly what Kestra does:
-   - Does it save the change?
-   - Does it display an error or warning?
-   - Does `taxi_intro` still appear in the flow list?
-   - Does a new flow named `taxi_intro_copy` appear?
-6. If the editor still contains the changed ID, restore `id: taxi_intro` before leaving it.
-
-### Part B — Save the same definition as a new flow
-
-1. Return to **Flows** and choose **Create flow**.
-2. Paste the same YAML definition.
-3. Change only the flow ID to `taxi_intro_copy`.
-4. Save it and return to the flow list.
-5. Open both flows and compare their execution histories.
-
-Answer these questions from your observations:
-
-1. Is changing an existing flow the same operation as creating a new flow?
-2. Which two YAML values identify a flow in Kestra?
-3. Did the two earlier executions move to `taxi_intro_copy`? What does that tell you about execution history?
-4. If you wanted to change only the log message, would you need a new flow ID? Explain.
-
-Keep both flows until you have compared them. You may then delete `taxi_intro_copy`; continue the practical with the original `taxi_intro` flow.
 
 ## 6. Check an invalid input
 
 Try entering `month = 13`. Check whether Kestra prevents submission or adjusts the value to `12`. If an execution starts, inspect its inputs to see which month was actually submitted. The permitted range is 1–12.
-
-**Discuss:**
-
-1. What is the difference between saving a flow and executing it?
-2. Why can one flow process different months without editing its code?
-3. Does a successful logging task prove the taxi records exist in PostgreSQL? Explain.
-
-**Finish with:** one saved flow, two successful executions with different month values, and the log message from each. Next, follow [Run a small Python task](part-2-python.md).
