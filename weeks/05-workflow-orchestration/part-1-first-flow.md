@@ -50,7 +50,7 @@ YAML uses indentation to group settings. Preserve the spaces when copying the fi
 **Two rules about IDs:**
 
 1. **IDs must be unique within their scope.** A flow ID must be unique within its namespace: `deng.week5` can contain only one flow named `taxi_intro`, but another namespace can use the same name. Task IDs must be unique within a flow. Running a flow again does not require changing either ID; Kestra generates a separate execution ID for each run.
-2. **Saving a flow establishes its identity.** The combination of namespace and flow ID identifies the saved flow, even before its first execution. You can later edit its tasks, inputs, and messages, but to use a different flow ID, copy the YAML into a new flow and change the ID before saving. The original flow keeps its execution history; the new flow has its own history.
+2. **The namespace and flow ID form the flow's identity.** You will investigate what this means after creating and executing the flow.
 
 ## 2. Create the flow in Kestra
 
@@ -85,7 +85,52 @@ Selected taxi data: year=2024, month=2
 
 Open the execution history and compare both runs. You have one workflow definition and two separate executions, each with its own inputs and log.
 
-## 5. Check an invalid input
+## 5. Exercise: can you change a saved flow's ID?
+
+You now have one saved flow called `taxi_intro` and two executions in its history. Test what Kestra does when you try to give that saved flow a different identity.
+
+### Part A — Try to rename the saved flow
+
+1. Open `taxi_intro` and note how many executions it has.
+2. Open the flow's **Edit** view.
+3. Change only this line:
+
+   ```yaml
+   id: taxi_intro
+   ```
+
+   to:
+
+   ```yaml
+   id: taxi_intro_copy
+   ```
+
+4. Try to save the flow.
+5. Record exactly what Kestra does:
+   - Does it save the change?
+   - Does it display an error or warning?
+   - Does `taxi_intro` still appear in the flow list?
+   - Does a new flow named `taxi_intro_copy` appear?
+6. If the editor still contains the changed ID, restore `id: taxi_intro` before leaving it.
+
+### Part B — Save the same definition as a new flow
+
+1. Return to **Flows** and choose **Create flow**.
+2. Paste the same YAML definition.
+3. Change only the flow ID to `taxi_intro_copy`.
+4. Save it and return to the flow list.
+5. Open both flows and compare their execution histories.
+
+Answer these questions from your observations:
+
+1. Is changing an existing flow the same operation as creating a new flow?
+2. Which two YAML values identify a flow in Kestra?
+3. Did the two earlier executions move to `taxi_intro_copy`? What does that tell you about execution history?
+4. If you wanted to change only the log message, would you need a new flow ID? Explain.
+
+Keep both flows until you have compared them. You may then delete `taxi_intro_copy`; continue the practical with the original `taxi_intro` flow.
+
+## 6. Check an invalid input
 
 Try entering `month = 13`. Check whether Kestra prevents submission or adjusts the value to `12`. If an execution starts, inspect its inputs to see which month was actually submitted. The permitted range is 1–12.
 
