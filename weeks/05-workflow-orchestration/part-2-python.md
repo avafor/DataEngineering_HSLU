@@ -72,7 +72,7 @@ Find the messages from the first and last tasks as well. A printed filename is o
 | `type: ...python.Script` | This task executes Python code. |
 | `containerImage` | Selects the prepared image containing Python. |
 | Docker `taskRunner` | Starts a temporary container for this task. |
-| `pullPolicy: NEVER` | Uses our locally built image. |
+| `pullPolicy: NEVER` | Uses the Python image downloaded during preparation; it does not pull it again. |
 | `script: \|` | The indented lines below are the Python script. |
 
 Kestra substitutes the input expressions before executing Python. With month 2, `month = {{ inputs.month }}` becomes `month = 2`.

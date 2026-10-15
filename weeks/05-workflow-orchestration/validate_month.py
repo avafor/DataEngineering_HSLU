@@ -21,7 +21,7 @@ def validate_month(year, month, engine):
             SELECT COUNT(*)
             FROM public.taxi_trips_etl
             WHERE source_month = :month
-              AND trip_category NOT IN ('short', 'long', 'invalid', 'unknown')
+              AND (trip_category IS NULL OR trip_category NOT IN ('short', 'long', 'invalid', 'unknown'))
         """), {"month": source_month})
 
     if row_count == 0:

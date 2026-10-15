@@ -1,6 +1,10 @@
 id: taxi_full_etl_four_tasks
 namespace: deng.week5
 
+# Limit resource use while processing large monthly files.
+concurrency:
+  limit: 1
+
 inputs:
   - id: year
     type: INT
@@ -16,6 +20,7 @@ triggers:
   - id: monthly_schedule
     type: io.kestra.plugin.core.trigger.Schedule
     cron: "@monthly"
+    timezone: UTC
 
 tasks:
   - id: check_source

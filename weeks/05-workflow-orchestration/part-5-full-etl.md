@@ -8,7 +8,7 @@ Combine the three stages in one flow: extract a monthly file, transform selected
 
 ```text
 TLC Parquet file → Python transformation → PostgreSQL taxi_trips_etl
-     extract              transform/load
+       Extract → Transform → Load
 ```
 
 The earlier activities separated these ideas so that each was easier to inspect. This activity first shows a one-task ETL and then refactors it into three tasks.
@@ -18,9 +18,9 @@ The earlier activities separated these ideas so that each was easier to inspect.
 Open [`etl_month.py`](etl_month.py). Identify:
 
 - where the monthly file is found or downloaded;
-- where duration and `trip_category` are calculated;
-- where columns are renamed;
-- where the result is written to `public.taxi_trips_etl`.
+- where it calls `transform_file()` in [transform_month.py](transform_month.py), which calculates duration and `trip_category`;
+- where that transformation renames columns;
+- where it calls `load_file()` in [load_month.py](load_month.py), which hashes records and writes to `public.taxi_trips_etl`.
 
 The destination is a separate table. It does not alter `taxi_trips_monthly` or the SQL sample table.
 
@@ -50,7 +50,11 @@ GROUP BY source_month, trip_category
 ORDER BY source_month, trip_category;
 ```
 
-Rerun the same month. The row count should remain stable because the script replaces that month inside one transaction. Run February and compare the output groups.
+Rerun the same month. The row count should remain stable: a deterministic hash identifies repeat records, and `ON CONFLICT DO NOTHING` skips hashes already stored. Check the log counts for processed, inserted and skipped rows. All inserts in one load commit together; a failure rolls them back. Run February and compare the output groups.
+
+Unlike Part 4's monthly replacement, both full ETL versions use the same hash-based loader. The hash uses pickup/drop-off times, distance, pickup/drop-off zones and fare. This is a teaching definition of a duplicate, not an official trip identifier: distinct trips with identical selected values will collapse into one record, even across source files. A changed source record can generate a new hash, and changing transformation rules does not update an existing row. Discuss when an update or replacement policy would be more appropriate.
+
+**If you used an older ETL:** rows without `row_hash` cannot be deduplicated against new hashes. The loader stops with a clear message rather than silently mixing the two approaches. For a disposable classroom ETL table only, first confirm that no pipeline is running, then run `TRUNCATE TABLE public.taxi_trips_etl;` in Week 5 pgAdmin and reload the months you need. This removes that table's existing results. Keep a backup instead if you need those results. Do not reset the monthly source table.
 
 **Discuss:** Which part is extraction, transformation and loading? What does Kestra coordinate, and what does the Python script perform? Which checks would you add before declaring the ETL successful?
 
@@ -64,11 +68,19 @@ The current flow runs extraction, transformation and loading inside one Python t
 Extract → Transform → Load
 ```
 
-The tasks must have clear boundaries. In the provided three-script flow, the tasks share the Week 5 `data` volume; the Parquet and CSV files therefore remain available after a task container ends:
+The tasks must have clear boundaries. All three tasks share the Week 5 `data` folder, mounted as `/app/data` inside their containers. Extract writes `data/source.parquet`; Transform reads it and writes `data/transformed.csv`; Load reads that CSV. The files remain on your laptop after a task container ends.
+
+**Run one split-task ETL execution at a time, including across different flow IDs.** Finish or recover a failed execution before starting another: a new Extract or Transform overwrites the shared files. Keep the CSV unchanged until the failed Load has been restarted successfully.
+
+Use [extract_month.py](extract_month.py), [transform_month.py](transform_month.py), and [load_month.py](load_month.py):
 
 1. **Extract** downloads the monthly Parquet file into the shared data directory.
 2. **Transform** reads it, calculates `duration_minutes` and `trip_category`, and writes `transformed.csv`.
 3. **Load** reads the CSV and inserts rows using the deterministic hash and `ON CONFLICT DO NOTHING`.
+
+The one-task version already calls the same transformation and loading functions. Your refactoring changes which stages Kestra can observe and restart separately, not the data rules. Extract in the split version downloads from TLC; the one-task version can reuse a prepared monthly file.
+
+Add `concurrency: {limit: 1}` at flow level to limit simultaneous runs of this flow on your laptop. This limit does not coordinate different flow IDs: work on one ETL exercise at a time.
 
 Use the task logs to show which stage completed. The restart exercise later in this file introduces a controlled Load failure.
 
@@ -86,6 +98,7 @@ triggers:
     type: io.kestra.plugin.core.trigger.Schedule
     # Add a cron expression that runs on the first day of every month.
     cron: "..."
+    timezone: UTC
 ```
 
 Do not place `trigger.date` inside the trigger's `inputs` block. In this Kestra version, that expression is evaluated before the scheduled execution context is available. Instead, use it in every task command that needs the target year and month:
@@ -97,6 +110,8 @@ Do not place `trigger.date` inside the trigger's `inputs` block. In this Kestra 
 
 For a scheduled or backfill execution, the date-dependent tasks use the year and month from `trigger.date`. For a manual execution, `trigger.date` is unavailable, so the tasks use the values selected in the execution form. Check, Extract, Load and Validate must all use the same rule.
 
+**Teaching convention:** the scheduled date selects the source month directly. Thus a 1 March execution requests March's file, which will normally not be published yet. Use historical backfills for this exercise. A production schedule needs an explicit publication delay; changing the cron day alone does not change the selected source month. Use a consistent timezone (for example `timezone: UTC`) and disable schedules when you finish class.
+
 After saving the flow:
 
 1. Check that the schedule is enabled in Kestra.
@@ -105,6 +120,29 @@ After saving the flow:
 4. Check the Extract and Load command logs to confirm which year and month the tasks used.
 
 **Discuss:** Which month should a run on 1 March process? Why should the schedule use the scheduled date rather than the machine's current date? How would you process a month that was missed while the schedule was disabled?
+
+### Backfill exercise — recover two historical months
+
+A backfill creates an execution for each schedule occurrence in a chosen historical interval. It does not simply pass the current input defaults to every month.
+
+1. Save your completed three-task scheduled flow in Kestra. Confirm that Extract and Load both use the date expressions above.
+2. Open **Triggers → monthly_schedule → Backfill executions**.
+3. Choose an interval containing the January and February schedule occurrences, for example **31 December 2023, 12:00 UTC** through **2 February 2024, 12:00 UTC**, with `@monthly` and `timezone: UTC`. Confirm the dates shown by your browser.
+4. Leave year/month at their defaults: these are fallback inputs for manual runs; scheduled task commands use `trigger.date`. Leave optional labels unset. If a separate scheduling/start time is shown, it controls when the backfill starts, not the source months.
+5. Start the backfill. Inspect **Executions**, even if the progress indicator disappears. Check each execution's scheduled date and the actual Extract and Load commands: one must use 2024/1, the other 2024/2.
+6. After both succeed, check the database:
+
+```sql
+SELECT source_month, COUNT(*) AS stored_rows
+FROM public.taxi_trips_etl
+WHERE source_month IN (DATE '2024-01-01', DATE '2024-02-01')
+GROUP BY source_month
+ORDER BY source_month;
+```
+
+Rerun the same backfill and compare counts. Existing hashes should be skipped. A successful execution alone does not prove the correct month was processed: inspect command arguments as well as table results. Each month is a separate execution; investigate and rerun a failed month explicitly, and verify the remaining months in execution history.
+
+Reference: [Kestra scheduling and backfills](https://kestra.io/docs/workflow-components/triggers/schedule-trigger).
 
 ### Other Kestra trigger types
 
@@ -180,7 +218,9 @@ Rebuild the image because it now contains `validate_month.py`:
 docker build -t deng-week5-ingest:local .
 ```
 
-Run the flow for an available month and inspect the Validate logs. Then run `validate_month.py` for a month that was not loaded and explain why the task fails.
+Run the flow for an available month and inspect the Validate logs. To test failure, create a separate flow with only the `validate` task copied from the five-task flow, keeping its inputs and connection settings. Execute it manually for a month you confirmed has no records. Do not run the full ETL for that test, because it would load the month first.
+
+Validation prints a message into Kestra's logs and exits successfully or raises an error; it does not create a separate log file. A failed Validate task does not undo Load's earlier commit. These two checks detect empty months and unexpected categories; they do not prove completeness, freshness, or correct business rules.
 
 **Discuss:** Why should a failed validation fail the task instead of only printing a warning?
 
@@ -220,6 +260,8 @@ Before another run, reset whatever external state your solution created.
 
 Use [06-restart-three-scripts.yaml](flows/06-restart-three-scripts.yaml) for this exercise.
 
+Before starting, make sure no earlier restart exercise is running. Remove an old marker if present with `rm -f data/load_ready`. Import the current flow and execute it with year 2024, month 1.
+
 1. Run Extract and Transform successfully.
 2. Load fails because `data/load_ready` does not exist.
 3. Open the failed execution in Kestra. The execution page shows the three task states; Extract and Transform should be successful and Load should be failed.
@@ -228,16 +270,19 @@ Use [06-restart-three-scripts.yaml](flows/06-restart-three-scripts.yaml) for thi
 ```sh
 touch data/load_ready
 ```
-5. Open the execution's **Actions** menu and choose **Restart**. Restart reruns the failed task in the same execution. If your Kestra version does not offer Restart, start a new execution after creating the marker file.
+5. Open the execution's **Actions** menu and choose **Restart**. Restart reruns the failed task in the same execution. Do not edit the flow or choose a replay using a new revision. A fresh execution reruns all tasks and does not demonstrate this recovery exercise.
 6. Compare the logs. Extract and Transform should remain successful; Load should run again.
 7. Check the result in pgAdmin:
 
 ```sql
 SELECT COUNT(*) AS loaded_rows
-FROM public.taxi_trips_etl;
+FROM public.taxi_trips_etl
+WHERE source_month = DATE '2024-01-01';
 ```
 
-Run Load once more. The count should stay unchanged because the hash and `ON CONFLICT DO NOTHING` rule skip records already loaded.
+Start a fresh execution for the same month while the marker still exists. All three tasks run again. The count should stay unchanged because the hash and `ON CONFLICT DO NOTHING` rule skip records already loaded.
+
+The empty marker lives at `data/load_ready` on your laptop, mounted as `/app/data/load_ready` inside Load. It is a permission-to-proceed signal; the CSV remains separately in `data/transformed.csv`.
 
 After the exercise, remove the marker file:
 
