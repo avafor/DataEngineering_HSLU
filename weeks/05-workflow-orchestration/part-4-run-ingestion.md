@@ -93,7 +93,7 @@ Execute `load_taxi_month` with year **2024** and month **1**. Keep the browser o
 
 Look for:
 
-- `Using prepared file:` — the loader found your downloaded January file; otherwise `Downloading ...` shows that it is fetching a temporary copy.
+- `Using prepared file:` — the loader found your downloaded January file.
 - Increasing row counts marked `not committed yet`.
 - `Committed 2024-01:` — the complete month passed the loader's count check and was saved.
 - The task and execution finishing with **SUCCESS**.
@@ -123,7 +123,7 @@ The count should stay the same when the input file is unchanged: the loader repl
 2. Which component decides whether to commit or roll back the load?
 3. Why is a successful Kestra execution followed by a database check useful?
 
-**Finish with:** two successful ingestion executions, the month count from pgAdmin, and an explanation of the rerun behaviour. Part 5 builds a full ETL and later adds a separate validation task.
+**Finish with:** two successful ingestion executions, the month count from pgAdmin, and an explanation of the rerun behaviour. The next exercise will add a separate validation task.
 
 ## If something fails
 
@@ -181,7 +181,7 @@ tasks:
 
 **Discuss with your partner:**
 
-1. Find the three incorrect configuration values in the flow. Which value should be the image name, and which should be the network name?
+1. Find the three mistakes marked in the flow. Which value should be the image name, and which should be the network name?
 2. Where does `localhost` point when the Python script runs inside its temporary container?
 3. Which port should the Python container use to reach PostgreSQL inside the Docker network?
 4. What error would you expect first if this flow were executed?

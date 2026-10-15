@@ -17,7 +17,3 @@ ALTER TABLE public.taxi_trips_etl
 CREATE UNIQUE INDEX IF NOT EXISTS taxi_trips_etl_row_hash_key
     ON public.taxi_trips_etl (row_hash)
     WHERE row_hash IS NOT NULL;
-
--- Keep month-specific checks fast as more files are loaded.
-CREATE INDEX IF NOT EXISTS taxi_trips_etl_source_month_idx
-    ON public.taxi_trips_etl (source_month);

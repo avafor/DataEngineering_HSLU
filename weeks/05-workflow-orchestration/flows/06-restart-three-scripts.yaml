@@ -1,10 +1,6 @@
 id: taxi_restart_three_scripts
 namespace: deng.week5
 
-# Limit resource use while processing large monthly files.
-concurrency:
-  limit: 1
-
 inputs:
   - id: year
     type: INT

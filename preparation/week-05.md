@@ -16,7 +16,7 @@ All remaining commands in this checklist run from this folder.
 
 ## 2. Create the local environment file
 
-If `.env` already exists, keep it and add missing settings from `.env.example`. Otherwise, copy the example file once:
+Copy the example file once:
 
 ```sh
 cp .env.example .env
@@ -27,6 +27,8 @@ On Windows PowerShell, use:
 ```powershell
 Copy-Item .env.example .env
 ```
+
+If `.env` already exists, keep it and add any missing settings from `.env.example`.
 
 Open `.env` and replace the four example passwords. The Kestra login password needs at least eight characters, including an uppercase letter, a lowercase letter and a number. `KESTRA_USER` is an email-format local login name.
 
@@ -68,7 +70,7 @@ This is the only absolute path you need to configure.
 
 ## 4. Download images and build the Python image
 
-Start Docker Desktop or your Docker engine first. Download the required Docker images and build the local Python image:
+Download the required Docker images and build the local Python image:
 
 ```sh
 docker compose pull

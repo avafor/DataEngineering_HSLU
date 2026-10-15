@@ -89,13 +89,6 @@ Open the execution history and compare both runs. You have one workflow definiti
 
 You now have one saved flow called `taxi_intro` and two executions in its history. Test what Kestra does when you try to give that saved flow a different identity.
 
-1. Open the saved flow's editor. Try changing only `id: taxi_intro` to `id: taxi_intro_copy` and saving. Record whether the editor permits the change and any message it shows.
-2. Return to **Flows → Create flow**. Paste the same YAML with `id: taxi_intro_copy` and save it there.
-3. Compare the two flows and their execution histories. Did creating the copy move the original executions?
-4. Try creating another flow with the same namespace and ID. What does Kestra prevent or ask you to do?
-
-Keep the original flow and its history. Explain the difference between editing a workflow and creating a new identity.
-
 
 ## 6. Check an invalid input
 

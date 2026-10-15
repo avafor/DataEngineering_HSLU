@@ -2,7 +2,6 @@
 
 import argparse
 from urllib.request import Request, urlopen
-from urllib.error import HTTPError, URLError
 
 
 def check_source(year, month):
@@ -20,12 +19,7 @@ def main():
     parser.add_argument("--year", type=int, required=True)
     parser.add_argument("--month", type=int, choices=range(1, 13), required=True)
     args = parser.parse_args()
-    try:
-        check_source(args.year, args.month)
-    except HTTPError as error:
-        raise SystemExit(f"Source check failed for {args.year}-{args.month:02d}: HTTP {error.code}. The file may be unpublished or access may be denied.")
-    except (URLError, TimeoutError) as error:
-        raise SystemExit(f"Source check failed: could not reach TLC ({error}).")
+    check_source(args.year, args.month)
 
 
 if __name__ == "__main__":

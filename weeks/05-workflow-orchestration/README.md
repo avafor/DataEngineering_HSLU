@@ -111,4 +111,4 @@ Named volumes preserve the taxi records, pgAdmin settings and Kestra history. `d
 2. [Run a small Python task](part-2-python.md): construct a filename and URL, follow task order, and investigate a failure.
 3. [Transform taxi columns with SQL](part-3-sql-transformation.md): calculate duration, classify trips, and inspect query outputs.
 4. [Run the taxi loader](part-4-run-ingestion.md): complete the ingestion command and verify its results.
-5. [Build a complete ETL flow](part-5-full-etl.md): extract, transform and load; then practice scheduling, backfills, source checks, validation, retries and recovery.
+5. [Build a complete ETL flow](part-5-full-etl.md): extract, transform and load one monthly file.
