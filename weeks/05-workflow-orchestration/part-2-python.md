@@ -32,7 +32,7 @@ filename = f"yellow_tripdata_{year}-{month:02d}.parquet"
 
 The file [02-python-starter.yaml](flows/02-python-starter.yaml) is a **workflow definition**. It tells Kestra which inputs and tasks the workflow contains. It is not a Python file and you do not run it as a terminal command.
 
-In this step, you will copy that definition into Kestra, execute it, and observe how Kestra runs three tasks in order. **There is no missing code to complete in Step 2.** The starter already performs its intended job: it constructs and prints a filename. The coding exercise begins in Step 3, where you extend the working flow to construct a URL.
+In this step, you will copy that definition into Kestra, execute it, and observe how Kestra runs three tasks in order. The starter performs its intended job: it constructs and prints a filename. 
 
 ### What should you do?
 

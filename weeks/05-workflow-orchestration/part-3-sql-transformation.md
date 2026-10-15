@@ -79,11 +79,16 @@ flowchart LR
 
 ## 4. Execute and inspect the data
 
-Save and execute with year **2024**, month **1**. Open the execution's **Outputs** view, select `transform_trips`, and inspect `rows`. Compare with your pgAdmin result.
+You will now run the `taxi_sql_transformation` flow you created in Step 3. Its YAML must contain your completed SQL query under `sql: |`.
+
+1. In **Kestra**, open the `taxi_sql_transformation` flow's **Edit** view. Check that you replaced both SQL placeholders with your duration calculation and `CASE` expression.
+2. Click **Save** in Kestra to save the completed YAML workflow definition. Saving a local `.yaml` or `.sql` file on your laptop does not update the flow in Kestra. Saving the flow does not execute it either.
+3. Click **Execute**. Enter **year = 2024** and **month = 1**, then start the execution.
+4. Once the execution finishes, open that execution's **Outputs** view.
+5. Select the `transform_trips` task and expand `rows`. These are the records returned by PostgreSQL and collected by `fetchType: FETCH`.
+6. Compare their `duration_minutes` and `trip_category` values with the result of the same query in pgAdmin. Use the same source table, month, and duration threshold in both places.
 
 The placeholder query is valid SQL, so it can succeed before you finish the exercise. **SUCCESS alone is not the checkpoint:** verify that durations are calculated and the category no longer says `not classified`.
-
-Change your threshold, save the flow, and run again. Does the result follow the new rule? The sample itself stays unchanged. This particular sample might not contain trips on both sides of every threshold.
 
 Now execute for month **2**. The prepared sample contains January only, so expect zero rows. A valid `SELECT` returning no rows can still succeed.
 
