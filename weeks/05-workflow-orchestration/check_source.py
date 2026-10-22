@@ -1,6 +1,8 @@
 """Check whether one monthly TLC taxi file is available."""
 
 import argparse
+import sys
+from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 
@@ -9,9 +11,12 @@ def check_source(year, month):
     url = f"https://d37ci6vzurychx.cloudfront.net/trip-data/{filename}"
 
     request = Request(url, method="HEAD")
-    with urlopen(request, timeout=20) as response:
-        print(f"File is available: {url}")
-        print(f"HTTP status: {response.status}")
+    try:
+        with urlopen(request, timeout=20) as response:
+            print(f"File is available: {url}")
+            print(f"HTTP status: {response.status}")
+    except (URLError, TimeoutError):
+        sys.exit(f"File does not exist or cannot be accessed: {url}")
 
 
 def main():
