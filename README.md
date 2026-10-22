@@ -34,7 +34,7 @@ By the end of the module, you should be able to:
 - [Week 4 — Transformation, serving, and protecting identifiers](weeks/04-transformation-and-serving/README.md)
 - [Week 5 — Workflow orchestration with Kestra](weeks/05-workflow-orchestration/README.md)
 - [Week 6 — Workflow orchestration continued](weeks/06-workflow-orchestration-continued/README.md)
-- [Week 10 — Cloud platform and Terraform](weeks/10-cloud-platform-and-terraform/README.md)
+- [Week 11 — Cloud platform and Terraform](weeks/11-cloud-platform-and-terraform/README.md)
 
 ## Recurring example
 

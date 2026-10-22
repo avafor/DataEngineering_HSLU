@@ -1,8 +1,8 @@
-# Week 10 — Downloads before class
+# Week 11 — Downloads before class
 
 [All preparation checklists](README.md) · [Module homepage](../README.md)
 
-In Week 10, you will extend the local NYC Taxi pipeline toward a cloud data platform. You will compare a data lake, warehouse, and data mart; distinguish ETL from ELT; and use Terraform to describe a Google Cloud Storage bucket and a BigQuery dataset as code. Before class, think about these questions: If the same cloud environment must be created twice, how can we ensure both copies have the same configuration? How can we inspect a proposed infrastructure change before applying it? Which NYC Taxi data belongs in object storage, and which data should be presented as queryable tables? You do not need to prepare answers.
+In Week 11, you will extend the local NYC Taxi pipeline toward a cloud data platform. You will compare a data lake, warehouse, and data mart; distinguish ETL from ELT; and use Terraform to describe a Google Cloud Storage bucket and a BigQuery dataset as code. Before class, think about these questions: If the same cloud environment must be created twice, how can we ensure both copies have the same configuration? How can we inspect a proposed infrastructure change before applying it? Which NYC Taxi data belongs in object storage, and which data should be presented as queryable tables? You do not need to prepare answers.
 
 This checklist prepares your account and command-line tools. Do not create cloud resources or start the Terraform exercise before class.
 
@@ -69,7 +69,7 @@ The command should print a Terraform version. You do not need a HashiCorp Cloud 
 
 ## 5. Get the current course files
 
-Update your course copy using your usual Git workflow while preserving your own work. The Week 10 practical folder and its exact Terraform provider versions will be added as the practical develops. Recheck this preparation file before class; it will be updated with a provider-download command once that configuration is available.
+Update your course copy using your usual Git workflow while preserving your own work. The Week 11 practical folder and its exact Terraform provider versions will be added as the practical develops. Recheck this preparation file before class; it will be updated with a provider-download command once that configuration is available.
 
 Do not run `terraform apply` from an unrelated example or copy credentials into a `.tf` file.
 
@@ -82,7 +82,7 @@ Do not run `terraform apply` from an unrelated example or copy credentials into 
 - `gcloud config get-value project` shows the intended project ID.
 - You completed `gcloud auth application-default login` without an error.
 - `terraform version` works.
-- You have not created any Week 10 cloud resources yet.
+- You have not created any Week 11 cloud resources yet.
 
 ## If something fails
 

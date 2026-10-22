@@ -1,6 +1,6 @@
-# Week 10 — Part 1: Map the local pipeline to a cloud platform
+# Week 11 — Part 1: Map the local pipeline to a cloud platform
 
-[Week 10 overview](README.md)
+[Week 11 overview](README.md)
 
 ## Goal
 
@@ -42,7 +42,7 @@ ELT does not mean that source data needs no validation or that every value shoul
 
 ## 4. Complete the architecture
 
-Copy this table into your notes and fill the empty cells before looking back at the Week 10 overview.
+Copy this table into your notes and fill the empty cells before looking back at the Week 11 overview.
 
 | Stage | Tool or location | What happens? |
 |---|---|---|
