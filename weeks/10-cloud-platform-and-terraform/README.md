@@ -1,6 +1,6 @@
-# Week 6 — Cloud platform and Terraform
+# Week 10 — Cloud platform and Terraform
 
-[Module homepage](../../README.md) · [Downloads before class](../../preparation/week-06.md)
+[Module homepage](../../README.md) · [Downloads before class](../../preparation/week-10.md)
 
 ## Goal
 
@@ -14,9 +14,9 @@ Extend the NYC Taxi example from one local database to a small cloud data platfo
 - provision a Google Cloud Storage bucket and BigQuery dataset; and
 - publish and verify NYC Taxi data using those resources.
 
-## From Week 5 to Week 6
+## From Week 5 to Week 10
 
-In Week 5, Kestra coordinated tasks that downloaded, transformed, validated, and loaded taxi records into local PostgreSQL. Week 6 introduces cloud storage and a cloud analytical database.
+In Week 5, Kestra coordinated tasks that downloaded, transformed, validated, and loaded taxi records into local PostgreSQL. Week 10 introduces cloud storage and a cloud analytical database.
 
 ```mermaid
 flowchart LR
@@ -42,7 +42,7 @@ The solid arrows show the **data pipeline**: data moves and changes. The dotted 
 5. Publish NYC Taxi data and verify it in BigQuery.
 6. Change, inspect, and finally remove the infrastructure safely.
 
-Only Part 1 is released at this stage. Later parts will be added and the [Week 6 preparation](../../preparation/week-06.md) will then identify the exact provider download required before class.
+Only Part 1 is released at this stage. Later parts will be added and the [Week 10 preparation](../../preparation/week-10.md) will then identify the exact provider download required before class.
 
 ## Project connection
 
