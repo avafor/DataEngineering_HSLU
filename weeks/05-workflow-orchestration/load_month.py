@@ -11,9 +11,10 @@ from sqlalchemy.dialects.postgresql import insert
 parser = argparse.ArgumentParser()
 parser.add_argument('--year', type=int, required=True)
 parser.add_argument('--month', type=int, choices=range(1, 13), required=True)
+parser.add_argument('--input', default='/app/data/transformed.csv')
 args = parser.parse_args()
 month = f'{args.year}-{args.month:02d}-01'
-frame = pd.read_csv('/app/data/transformed.csv')
+frame = pd.read_csv(args.input)
 frame['source_month'] = pd.Timestamp(month).date()
 frame['pickup_time'] = pd.to_datetime(frame['pickup_time'])
 frame['dropoff_time'] = pd.to_datetime(frame['dropoff_time'])
