@@ -65,7 +65,7 @@ Detailed walk-through and troubleshooting: [01_setup/README.md](01_setup/README.
 
 You can skip this until you start the Flink track ([03_exercise/exercise_07_flink.md](03_exercise/exercise_07_flink.md), [08](03_exercise/exercise_08_flink_food.md), [09](03_exercise/exercise_09_flink_joins.md)).
 
-1. Open **Dinky** (port `8888` in *PORTS*). On first login pick any password.
+1. Open **Dinky** (port `8888` in *PORTS*). On the welcome page, set your own admin password and note it down — you need it to log in again (user `admin`).
 2. Top menu: **Registration Center** → side menu: **Cluster** → **Cluster Instance** (⚠️ *not* "Cluster Config" — that's for Yarn).
 3. Click **+ Add**. A *Create Cluster Instance* dialog opens. Fill in:
 

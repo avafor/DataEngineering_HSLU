@@ -1,10 +1,30 @@
 # Flink SQL on our food-delivery data — Solutions
 
-Reference answers for [03_exercise/exercise_08_flink_food.md](../03_exercise/exercise_08_flink_food.md).
+Task and reference answer side by side for [03_exercise/exercise_08_flink_food.md](../03_exercise/exercise_08_flink_food.md). Do the setup there first.
 
 ---
 
 ## Exercise A — tumbling window: orders per minute
+
+**Goal:** for every minute, the number of new orders and their revenue.
+
+Hints:
+
+- Window table function (the newer syntax, also used in
+  [examples/flink_rider_locations.sql](../examples/flink_rider_locations.sql)):
+  `FROM TABLE(TUMBLE(TABLE orders, DESCRIPTOR(event_time), INTERVAL '1' MINUTE))`
+- It adds the columns `window_start` and `window_end`; group by both.
+- Every order produces four events (one per status). Which ones do you count?
+
+
+**Questions**
+
+- How many orders per minute do you get? Does it match the producer (about one every 2 s)?
+- The row for `12:03–12:04` appears at about `12:04:05`. Why not at `12:04:00`, and why not earlier?
+- What does the count look like without the `WHERE` filter on `status`?
+- **Keep this query running** — you need it in Exercise D.
+
+**Solution:**
 
 ```sql
 SELECT
@@ -44,6 +64,25 @@ window_start      window_end        orders  revenue_chf
 
 ## Exercise B — hopping window: average speed per rider
 
+**Goal:** every minute, the average speed of each rider over the **last
+5 minutes**.
+
+Hints:
+
+- `HOP(TABLE rider_locations, DESCRIPTOR(event_time), <slide>, <size>)` —
+  **slide first, then size**.
+- Group by `window_start, window_end, rider_id`.
+- `ROUND(AVG(speed_kmh), 1)` keeps the numbers readable.
+
+
+**Questions**
+
+- How many rows per rider arrive every minute? How many windows does one ping belong to?
+- Why do the first windows contain fewer pings than the later ones?
+- A rider on a break sends no pings. What happens to the rows of that rider?
+
+**Solution:**
+
 ```sql
 SELECT
     window_start,
@@ -80,6 +119,32 @@ window_start      window_end        rider_id  pings  avg_speed_kmh
 
 ## Exercise C — session window: rider shifts
 
+**Goal:** one row per **shift** of a rider. A shift ends when a rider has
+sent no ping for **30 seconds**.
+
+Hints:
+
+- `SESSION(TABLE rider_locations PARTITION BY rider_id, DESCRIPTOR(event_time), INTERVAL '30' SECOND)`
+- `PARTITION BY rider_id` gives every rider their own sessions.
+- Rename the window columns: `window_start AS shift_start, window_end AS shift_end`.
+
+
+> **Session window**
+> No fixed size: as long as pings keep coming within the gap, the session
+> grows. After 30 s of silence (plus the 5 s watermark delay) it closes.
+> ```
+> rider_7: |-p-p--p-p-p--p-|    (break > 30 s)    |-p--p-p-p-|
+>               shift 1                             shift 2
+> ```
+
+**Questions**
+
+- `shift_end` is about 30 seconds later than the rider's last ping. Why?
+- How long are the shifts? Compare with the producer (20–60 s of pings).
+- What happens to the number of shifts if you set the gap to `90` seconds? Why?
+
+**Solution:**
+
 ```sql
 SELECT
     rider_id,
@@ -115,6 +180,49 @@ rider_9   2026-11-12 06:23:48.613   2026-11-12 06:25:04.846      54
 ---
 
 ## Exercise D — late data
+
+**Goal:** see what Flink does with an event that arrives after its window
+has been closed.
+
+### Step 1 — note a closed window
+
+Look at the output of Exercise A. Pick a window from about 3 minutes ago
+and note its `orders` value.
+
+### Step 2 — send one late event
+
+In a third terminal, from the repository root:
+
+```bash
+uv run --project streaming weeks/09-event-streaming/examples/order_producer.py --late 3
+```
+
+This sends **one** order with status `placed` whose event time lies
+3 minutes in the past, and exits. It prints the event time (UTC) and the order id.
+
+### Step 3 — observe
+
+1. Wait for the next row of Exercise A. Does a new or corrected row appear for the window of the late event?
+2. Check that the event really arrived: Redpanda Console → topic `orders` → newest message.
+3. Open the Flink Web UI (port `8081`) → the running job of Exercise A →
+   the box `GlobalWindowAggregate …` → tab **Metrics** → add
+   `numLateRecordsDropped`.
+4. Make the late events visible with a query of their own. `CURRENT_WATERMARK(event_time)`
+   returns the current watermark:
+
+
+Start this query, then send another late event (`--late 3`).
+
+5. Now send an event that is only 3 seconds "late": `--late 0.05`. Is it counted?
+
+**Questions**
+
+- Why does the closed window not change?
+- Why is an event that is 3 seconds old still counted, but one that is 3 minutes old is not?
+- What would you have to change so that the late order is still counted? What does that cost?
+- In a real delivery app: name a reason why an order event could arrive minutes late.
+
+**Solution:**
 
 Query to make late events visible:
 
