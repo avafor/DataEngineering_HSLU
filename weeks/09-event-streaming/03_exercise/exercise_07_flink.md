@@ -62,8 +62,18 @@ docker compose -f streaming/docker-compose.yml --profile bluesky up -d redpanda-
 This starts **Redpanda Connect**. Its recipe is
 [`streaming/connect/bluesky.yaml`](../../../streaming/connect/bluesky.yaml):
 connect to the Jetstream WebSocket, take each new post, keep a handful of
-fields and write it to the topic `bluesky`. It keeps running in the
-background until you stop it:
+fields and write it to the topic `bluesky`.
+
+**Check:** in the same terminal run
+
+```bash
+docker compose -f streaming/docker-compose.yml ps redpanda-connect
+```
+
+The service must show `running`. Then go on to S2 and look at the posts.
+
+Redpanda Connect keeps running in the background until you stop it (at the
+end, see *Cleanup*):
 
 ```bash
 docker compose -f streaming/docker-compose.yml --profile bluesky stop redpanda-connect
@@ -151,6 +161,9 @@ CREATE TABLE IF NOT EXISTS bluesky_posts (
 );
 ```
 
+**Check:** Dinky reports success at the bottom. Run `SHOW TABLES;` in the
+same task: `bluesky_posts` must be in the list.
+
 > **Why `proc_time AS PROCTIME()`?** Window functions need a time
 > attribute. `PROCTIME()` is the cluster's wall clock when each record
 > is processed. Simpler than event-time + watermarks for these
@@ -178,8 +191,11 @@ new topic `bluesky-english`.
   rows are written into the topic `bluesky-english`.
 - `INSERT INTO bluesky_english SELECT … FROM bluesky_posts WHERE langs[1] = 'en'`
   reads every new post, keeps it if its **first** language tag is `en`
-  (`langs[1]` — SQL arrays start at 1) and writes it into the sink. Run it in a new task — *don't* run all the
-later exercises if a slot is occupied here.
+  (`langs[1]` — SQL arrays start at 1) and writes it into the sink.
+
+Do it in a new task, one step at a time.
+
+**Step 1 — create the sink.** Run only this statement:
 
 ```sql
 -- DROP TABLE IF EXISTS bluesky_english;
@@ -195,7 +211,16 @@ CREATE TABLE IF NOT EXISTS bluesky_english (
     'properties.bootstrap.servers' = 'redpanda:29092',
     'format' = 'json'
 );
+```
 
+**Check:** `SHOW TABLES;` now lists `bluesky_english` as well. The topic
+`bluesky-english` does not exist yet — it is created when the first row
+is written in step 2.
+
+**Step 2 — start the streaming job.** Replace the statement in the editor
+with this one and run it:
+
+```sql
 INSERT INTO bluesky_english
 SELECT did, `text`, created_at, is_reply, `timestamp`
 FROM bluesky_posts
@@ -203,8 +228,16 @@ WHERE langs[1] = 'en';
 ```
 
 `INSERT INTO` is a **continuous streaming job** — it runs until you stop
-it. Verify in Redpanda Console: the new topic `bluesky-english` should
-appear and fill up. Then stop the job (red ■).
+it.
+
+**Check:**
+
+1. **Flink UI** (port `8081`) → *Running Jobs*: a new job with status
+   `RUNNING` (Dinky names it after your task).
+2. **Redpanda Console** → *Topics*: the new topic `bluesky-english` has
+   appeared. Open a message — it is an English post.
+
+Then stop the job (red ■ in Dinky) — it occupies one of the 4 slots.
 
 ---
 
@@ -245,6 +278,8 @@ CREATE TABLE IF NOT EXISTS bluesky_german (
 );
 ```
 
+**Check:** `SHOW TABLES;` lists `bluesky_german`.
+
 ### Step 2 — write the streaming job
 
 Write the `INSERT INTO` statement and run it. It keeps running — stop it
@@ -254,10 +289,13 @@ later with the red ■.
 -- TODO: INSERT INTO bluesky_german  ...  FROM bluesky_posts WHERE langs[1] = 'de';
 ```
 
-### Verify
+### Check
 
-In Redpanda Console, open the topic `bluesky-german`. German posts should
-arrive within seconds.
+1. **Flink UI** (port `8081`) → *Running Jobs*: your job is `RUNNING`.
+2. **Redpanda Console** → topic `bluesky-german`: German posts arrive
+   within seconds. Open one and read it.
+
+Stop the job (red ■) before the next task.
 
 **Questions**
 

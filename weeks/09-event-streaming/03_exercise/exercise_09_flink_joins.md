@@ -48,6 +48,10 @@ Besides `orders` it writes the topic `payments`
 A payment follows its order after 2–30 seconds — for about **one order in
 five it never comes**. The restaurant *Thai Garden* is new on the platform.
 
+**Check:** the terminal prints a status line every 10 seconds with
+`orders=…  payments=…  never paid=…`, and in **Redpanda Console** the
+topics `orders` and `payments` fill up.
+
 ### S2 — Source tables
 
 Use Dinky as in exercise 08 (Cluster `deng`, Catalog `DefaultCatalog`).
@@ -75,6 +79,10 @@ CREATE TABLE payments (
 );
 ```
 
+**Check:** `SHOW TABLES;` lists `orders` and `payments`. A quick
+`SELECT * FROM payments;` shows payments arriving within seconds — stop
+it (red ■) afterwards.
+
 ### S3 — The restaurant table
 
 The restaurant list is small and changes rarely. We define it directly
@@ -92,7 +100,7 @@ SELECT * FROM (VALUES
 ) AS t (restaurant, city, cuisine);
 ```
 
-Check it: `SELECT * FROM restaurants;` — five rows, and the job finishes
+**Check:** `SELECT * FROM restaurants;` shows five rows, and the job finishes
 by itself (the table is bounded, unlike a Kafka topic).
 
 ---
@@ -113,9 +121,15 @@ Hints:
 --       FROM orders AS o JOIN restaurants AS r ON ... WHERE ...
 ```
 
+**Check:** a new row for every new order, each with `city` and `cuisine`.
+Orders of *Thai Garden* never appear here.
+
 ### A2 — left join
 
 Run the same query with `LEFT JOIN` instead of `JOIN`.
+
+**Check:** now *Thai Garden* orders appear too — with `NULL` in `city`
+and `cuisine`.
 
 ### A3 — bonus: revenue per cuisine
 
@@ -161,6 +175,9 @@ Hints:
 --       FROM orders AS o JOIN payments AS p ON ... AND ... WHERE ...
 ```
 
+**Check:** rows appear a few seconds after each order — as soon as its
+payment has arrived — with `seconds_to_pay` between 2 and 30.
+
 Let it run for a few minutes, and keep the producer's terminal in view:
 it reports how many orders will *never* be paid.
 
@@ -168,6 +185,10 @@ it reports how many orders will *never* be paid.
 
 Run the same query with `LEFT JOIN`. Look for rows where `seconds_to_pay`
 and `payment_method` are `NULL`.
+
+**Check:** at first the result looks like B1. The `NULL` rows only start
+to appear **15 minutes** after you started the query (with the 1-minute
+variant: after about one minute).
 
 > **Don't want to wait 15 minutes?** Run the LEFT JOIN a second time with
 > `INTERVAL '1' MINUTE` instead of `'15' MINUTE`.

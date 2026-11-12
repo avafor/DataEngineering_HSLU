@@ -65,8 +65,15 @@ uv run --project streaming weeks/09-event-streaming/examples/producer.py --shift
   seconds without a single ping. `--duration 1800` keeps it running for
   30 minutes.
 
-Check in **Redpanda Console** (port `8080`) that `orders`, `payments`
-and `rider-locations` fill up.
+**Check:**
+
+1. Each terminal prints a status line every 10 seconds, e.g.
+   `t+  20s  orders=  11  status updates=  19  payments=   7  never paid=  2`
+   and `t+ 20s  sent=  …  rate=…/s`. The numbers grow.
+2. **Redpanda Console** (port `8080`) → *Topics*: `orders`, `payments` and
+   `rider-locations` fill up. Open a message of each and look at the fields.
+
+Leave both terminals running for the whole exercise.
 
 ### S2 — Open Dinky
 
@@ -139,7 +146,8 @@ CREATE TABLE rider_locations (
 >   from the moment it starts. The old events of exercises 01–06 stay out.
 > - Window times are shown in **UTC** (the time zone of the Flink container).
 
-Quick check in a new task — rows should appear within seconds:
+**Check:** `SHOW TABLES;` lists `orders` and `rider_locations`. Then, in a
+new task, look at the data — rows should appear within seconds:
 
 ```sql
 SELECT order_id, restaurant, status, event_time FROM orders;
@@ -166,6 +174,10 @@ Hints:
 --       FROM TABLE(TUMBLE(...)) WHERE ... GROUP BY ...
 ```
 
+**Check:** the **first row appears about one minute after you start** —
+only when the minute is over (plus the 5 s watermark). Until then the
+result stays empty; that is correct, not an error.
+
 **Questions**
 
 - How many orders per minute do you get? Does it match the producer (about one every 2 s)?
@@ -191,6 +203,9 @@ Hints:
 -- TODO: SELECT window_start, window_end, rider_id, COUNT(*) AS pings, ... AS avg_speed_kmh
 --       FROM TABLE(HOP(...)) GROUP BY ...
 ```
+
+**Check:** after the first full minute a block of rows appears — one per
+rider who sent pings in the last 5 minutes — and then a new block every minute.
 
 **Questions**
 
@@ -224,6 +239,10 @@ Hints:
 >               shift 1                             shift 2
 > ```
 
+**Check:** the first rows appear after one to two minutes — a shift row
+only comes when that rider's break has lasted 30 seconds. Rows of different
+riders arrive at different times.
+
 **Questions**
 
 - `shift_end` is about 30 seconds later than the rider's last ping. Why?
@@ -251,7 +270,11 @@ uv run --project streaming weeks/09-event-streaming/examples/order_producer.py -
 ```
 
 This sends **one** order with status `placed` whose event time lies
-3 minutes in the past, and exits. It prints the event time (UTC) and the order id.
+3 minutes in the past, and exits.
+
+**Check:** the terminal prints a line like
+`sent LATE order order-late-417: event time 08:12:05 UTC, now 08:15:05 UTC (3 min late)`.
+Note the order id and the event time.
 
 ### Step 3 — observe
 

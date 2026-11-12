@@ -1,6 +1,111 @@
-# Flink SQL joins — Solutions
+# Flink SQL joins on the food-delivery stream — Solutions
 
-Task and reference answer side by side for [03_exercise/exercise_09_flink_joins.md](../03_exercise/exercise_09_flink_joins.md). Do the setup there first.
+The complete exercise with the reference answers filled in: wherever the exercise has a `TODO`, you find **Solution:** here. Exercise without answers: [03_exercise/exercise_09_flink_joins.md](../03_exercise/exercise_09_flink_joins.md).
+
+## Background
+
+In a database, a join is easy: both tables are complete, so for every
+order the database can look up the matching payment — or see that there
+is none. In a stream neither side is ever complete:
+
+- The **payment** for an order may come seconds later, minutes later — or
+  **never** (the customer gives up, the card is declined).
+- To match them, Flink has to **keep orders in memory** until the payment
+  arrives. Forever? Then memory grows without limit.
+- When can Flink say "this order has no payment"? Only when it decides to
+  stop waiting.
+
+This exercise shows the two joins you need most often:
+
+| Join | Example | What Flink keeps in memory |
+|---|---|---|
+| **Stream–table join** (enrichment) | each order + city and cuisine of its restaurant | the small table, completely |
+| **Stream–stream interval join** | each order + its payment *within 15 minutes* | orders and payments of the last 15 minutes |
+
+```
+orders ────────┐
+               ├──▶ JOIN restaurants (small table)  ──▶ enriched orders
+               │
+               └──▶ JOIN payments within 15 min     ──▶ paid orders
+payments ──────┘         LEFT JOIN                  ──▶ + unpaid orders (NULL)
+```
+
+> **Slots are limited (4 total).** Each running query uses one slot.
+> Stop jobs you no longer need with the red ■ button.
+
+---
+
+## Setup
+
+### S1 — Start the order producer
+
+From the repository root (skip if it is still running from exercise 08):
+
+```bash
+uv run --project streaming weeks/09-event-streaming/examples/order_producer.py
+```
+
+Besides `orders` it writes the topic `payments`
+(key = order id, value `{order_id, amount_chf, payment_method, timestamp}`).
+A payment follows its order after 2–30 seconds — for about **one order in
+five it never comes**. The restaurant *Thai Garden* is new on the platform.
+
+**Check:** the terminal prints a status line every 10 seconds with
+`orders=…  payments=…  never paid=…`, and in **Redpanda Console** the
+topics `orders` and `payments` fill up.
+
+### S2 — Source tables
+
+Use Dinky as in exercise 08 (Cluster `deng`, Catalog `DefaultCatalog`).
+You need the table `orders` from
+[exercise 08, step S3](exercise_08_flink_food.md#s3--create-the-source-tables)
+— create it again if it's missing. Then create `payments`:
+
+```sql
+DROP TABLE IF EXISTS payments;
+CREATE TABLE payments (
+    order_id        STRING,
+    amount_chf      DOUBLE,
+    payment_method  STRING,
+    `timestamp`     DOUBLE,
+    event_time AS TO_TIMESTAMP_LTZ(CAST(`timestamp` * 1000 AS BIGINT), 3),
+    WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND
+) WITH (
+    'connector' = 'kafka',
+    'topic' = 'payments',
+    'properties.bootstrap.servers' = 'redpanda:29092',
+    'scan.startup.mode' = 'latest-offset',
+    'format' = 'json',
+    'json.fail-on-missing-field' = 'false',
+    'json.ignore-parse-errors' = 'true'
+);
+```
+
+**Check:** `SHOW TABLES;` lists `orders` and `payments`. A quick
+`SELECT * FROM payments;` shows payments arriving within seconds — stop
+it (red ■) afterwards.
+
+### S3 — The restaurant table
+
+The restaurant list is small and changes rarely. We define it directly
+in Flink as a **view over fixed values** — no topic, no extra script:
+
+```sql
+DROP VIEW IF EXISTS restaurants;
+CREATE VIEW restaurants AS
+SELECT * FROM (VALUES
+    ('Pizzeria Roma',   'Lucerne', 'Italian'),
+    ('Sushi Bar Kyoto', 'Zug',     'Japanese'),
+    ('Burger House',    'Lucerne', 'American'),
+    ('Curry Palace',    'Kriens',  'Indian'),
+    ('Taqueria Luz',    'Emmen',   'Mexican')
+) AS t (restaurant, city, cuisine);
+```
+
+**Check:** `SELECT * FROM restaurants;` shows five rows, and the job finishes
+by itself (the table is bounded, unlike a Kafka topic).
+
+---
 
 > **Why a view over `VALUES` for the restaurants?** It is the simplest
 > table that really works in Flink 1.20 with this stack: no extra topic,
@@ -38,9 +143,15 @@ Orders of *Thai Garden* are missing: the restaurant is not in the
 table, so the inner join finds no partner and drops the order. Silent
 data loss — a classic trap with enrichment joins.
 
+**Check:** a new row for every new order, each with `city` and `cuisine`.
+Orders of *Thai Garden* never appear here.
+
 ### A2 — left join
 
 Run the same query with `LEFT JOIN` instead of `JOIN`.
+
+**Check:** now *Thai Garden* orders appear too — with `NULL` in `city`
+and `cuisine`.
 
 **Solution:**
 
@@ -128,6 +239,9 @@ Hints:
   `INSERT INTO`, Flink accepts only **one** event-time column in it.)
 
 
+**Check:** rows appear a few seconds after each order — as soon as its
+payment has arrived — with `seconds_to_pay` between 2 and 30.
+
 Let it run for a few minutes, and keep the producer's terminal in view:
 it reports how many orders will *never* be paid.
 
@@ -167,6 +281,10 @@ order-646418  Fabio         45.71  2026-11-12 06:29:28.616               9  card
 
 Run the same query with `LEFT JOIN`. Look for rows where `seconds_to_pay`
 and `payment_method` are `NULL`.
+
+**Check:** at first the result looks like B1. The `NULL` rows only start
+to appear **15 minutes** after you started the query (with the 1-minute
+variant: after about one minute).
 
 > **Don't want to wait 15 minutes?** Run the LEFT JOIN a second time with
 > `INTERVAL '1' MINUTE` instead of `'15' MINUTE`.
@@ -225,3 +343,9 @@ choose it so that "no payment within the interval" really means "unpaid".
 **For a "payment missing" alert** use the LEFT JOIN and filter
 `WHERE p.order_id IS NULL`: exactly the orders that got no payment within
 15 minutes, each reported once, 15 minutes after the order.
+
+---
+
+## Cleanup
+
+Stop all running Flink jobs (red ■ in Dinky) and the producer (`Ctrl+C`).
