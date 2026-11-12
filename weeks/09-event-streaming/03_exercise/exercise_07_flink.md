@@ -17,27 +17,7 @@ In this track you'll:
 
 ### Architecture
 
-```
-Bluesky Jetstream (public WebSocket)
-        │
-        ▼
-┌──────────────────┐      ┌──────────────────┐
-│ Redpanda Connect │─────▶│     Redpanda     │
-│  (bluesky.yaml)  │      │  topic: bluesky  │
-└──────────────────┘      └────────┬─────────┘
-                                   │
-                          ┌────────┴─────────┐
-                          ▼                  ▼
-                   ┌──────────────┐   ┌──────────────┐
-                   │  Flink SQL   │   │  Flink SQL   │
-                   │ (filter/win) │   │ (filter/win) │
-                   └───────┬──────┘   └───────┬──────┘
-                           ▼                  ▼
-                    ┌────────────┐     ┌────────────┐
-                    │  Redpanda  │     │  Redpanda  │
-                    │  english   │     │  german    │
-                    └────────────┘     └────────────┘
-```
+<img src="../assets/bluesky_architecture.svg" alt="Bluesky Jetstream feeds Redpanda Connect, which writes to the Redpanda topic bluesky; two Flink SQL jobs filter and window the posts and write to the topics english and german" style="width: 100%; height: auto;" />
 
 > **Slots are limited (4 total).** Each running query (`SELECT` or
 > `INSERT INTO`) uses one slot. Stop unused jobs with the red ■ button

@@ -1,7 +1,17 @@
-"""Simulate delivery riders and write their GPS pings to the `rider-locations` topic."""
+"""Simulate delivery riders and write their GPS pings to the `rider-locations` topic.
+
+Usage, from the repository root:
+
+    uv run --project streaming weeks/09-event-streaming/examples/producer.py
+    uv run --project streaming weeks/09-event-streaming/examples/producer.py --shifts --duration 900
+
+`--shifts` lets every rider work in shifts: 20-60 s of pings, then a 40-90 s break
+without any ping. Used for the session windows in exercise 08.
+"""
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import random
@@ -26,6 +36,13 @@ def delivery_callback(err, msg) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--duration", type=int, default=DURATION_SECONDS,
+                        help=f"seconds to run (default {DURATION_SECONDS})")
+    parser.add_argument("--shifts", action="store_true",
+                        help="riders work in shifts with breaks of 40-90 s between them")
+    args = parser.parse_args()
+
     producer = Producer({"bootstrap.servers": BROKERS, "linger.ms": 50})
 
     riders = {
@@ -38,18 +55,31 @@ def main() -> None:
 
     print(
         f"producing to {TOPIC} on {BROKERS} at ~{RATE_PER_SECOND}/s "
-        f"for {DURATION_SECONDS}s ({NUM_RIDERS} riders)",
+        f"for {args.duration}s ({NUM_RIDERS} riders{', in shifts' if args.shifts else ''})",
         flush=True,
     )
     sleep_between = 1.0 / RATE_PER_SECOND
     start = time.time()
-    end = start + DURATION_SECONDS
+    end = start + args.duration
+    # Shift mode: every rider is on shift (True) or on a break (False) until a given time.
+    on_shift = {rider_id: True for rider_id in riders}
+    switch_at = {rider_id: start + random.uniform(20, 60) for rider_id in riders}
     sent = 0
     last_tick = start
     last_sent = 0
 
     while time.time() < end:
-        rider_id = random.choice(list(riders))
+        active = list(riders)
+        if args.shifts:
+            for r in riders:
+                if time.time() >= switch_at[r]:
+                    on_shift[r] = not on_shift[r]
+                    switch_at[r] = time.time() + (random.uniform(20, 60) if on_shift[r] else random.uniform(40, 90))
+            active = [r for r in riders if on_shift[r]]
+            if not active:              # everybody on a break
+                time.sleep(sleep_between)
+                continue
+        rider_id = random.choice(active)
         position = riders[rider_id]
         position[0] += random.uniform(-0.0003, 0.0003)
         position[1] += random.uniform(-0.0003, 0.0003)

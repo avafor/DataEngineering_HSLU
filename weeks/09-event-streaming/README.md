@@ -4,14 +4,17 @@
 
 ## Goal
 
-Work hands-on with the food-delivery story from the lecture: Anna orders a pizza, a rider picks it up, and the live map shows where every rider is. You write the rider's GPS pings and Anna's order into a Kafka-compatible broker (Redpanda), read them back, aggregate them, and finally run Flink SQL on a real live stream (the Bluesky firehose). By the end of the practical, you should be able to:
+Work hands-on with the food-delivery story from the lecture: Anna orders a pizza, a rider picks it up, and the live map shows where every rider is. You write the rider's GPS pings and Anna's order into a Kafka-compatible broker (Redpanda), read them back, aggregate them, and finally run Flink SQL on a real live stream (the Bluesky firehose) and on your own delivery data. By the end of the practical, you should be able to:
 
 - explain what a topic, a key, a partition and an offset are, and why the key decides the order of events;
+- create a topic with `rpk` and replay old events by resetting a consumer group's offset;
 - write a producer that sends events and confirms their delivery;
 - write a consumer that polls a topic, and explain how a consumer group remembers its position;
 - distinguish at-least-once from at-most-once processing and commit offsets manually;
-- maintain a running aggregate per key and flag anomalies in a stream; and
-- write Flink SQL queries with tumbling, hopping and session windows.
+- maintain a running aggregate per key and flag anomalies in a stream;
+- write Flink SQL queries with tumbling, hopping and session windows;
+- explain event time, watermarks and what happens to late events; and
+- enrich a stream with a table and join two streams within a time interval.
 
 ## Before you start
 
@@ -58,7 +61,7 @@ Detailed walk-through and troubleshooting: [01_setup/README.md](01_setup/README.
 
 ## 4. Tell Dinky where Flink lives (only for the Flink track)
 
-You can skip this until you start the Flink track ([03_exercise/exercise_07_flink.md](03_exercise/exercise_07_flink.md)).
+You can skip this until you start the Flink track ([03_exercise/exercise_07_flink.md](03_exercise/exercise_07_flink.md), [08](03_exercise/exercise_08_flink_food.md), [09](03_exercise/exercise_09_flink_joins.md)).
 
 1. Open **Dinky** (port `8888` in *PORTS*). On first login pick any password.
 2. Top menu: **Registration Center** → side menu: **Cluster** → **Cluster Instance** (⚠️ *not* "Cluster Config" — that's for Yarn).
@@ -94,12 +97,14 @@ Full walkthrough: [01_setup/dinky_guide.md](01_setup/dinky_guide.md).
 | [exercise_01_produce_single](03_exercise/exercise_01_produce_single.ipynb) | First producer: a rider ping and Anna's order; keys and partitions; an unreachable broker |
 | [exercise_02_consume_basic](03_exercise/exercise_02_consume_basic.ipynb) | Poll loop, a live consumer, and what `group.id` does |
 | [exercise_03_produce_batch](03_exercise/exercise_03_produce_batch.ipynb) | Batch producer for pings and order updates; key → partition mapping; events without a key |
-| [exercise_04_consume_groups](03_exercise/exercise_04_consume_groups.ipynb) | Manual offset commits; two consumers in one group |
+| [exercise_04_consume_groups](03_exercise/exercise_04_consume_groups.ipynb) | Manual offset commits; two consumers in one group; create a topic with `rpk`; replay old events with `rpk group seek` |
 | [exercise_05_produce_stream](03_exercise/exercise_05_produce_stream.ipynb) | A continuous GPS stream from several riders, bursts, and simulated GPS glitches |
 | [exercise_06_consume_aggregate](03_exercise/exercise_06_consume_aggregate.ipynb) | Running statistics per rider and detection of impossible speeds |
 | [exercise_07_flink.md](03_exercise/exercise_07_flink.md) | Flink SQL on the live Bluesky firehose: filter, tumbling, hopping and session windows |
+| [exercise_08_flink_food.md](03_exercise/exercise_08_flink_food.md) | Flink SQL on our own delivery data with event time and watermarks: orders per minute, average speed per rider, rider shifts, and a deliberately late event |
+| [exercise_09_flink_joins.md](03_exercise/exercise_09_flink_joins.md) | Flink SQL joins: enrich orders with a restaurant table; join orders and payments within 15 minutes, and find unpaid orders |
 
-Exercises 01–06 build on each other; work them top to bottom. Open a producer and a consumer notebook **side by side** (drag a tab to the right edge of the editor) to watch events arrive in real time. More details on the two tracks: [03_exercise/README.md](03_exercise/README.md).
+Exercises 01–06 build on each other; work them top to bottom. Exercises 08 and 09 need the producers from [examples/](examples/) running in a terminal. Open a producer and a consumer notebook **side by side** (drag a tab to the right edge of the editor) to watch events arrive in real time. More details on the two tracks: [03_exercise/README.md](03_exercise/README.md).
 
 Every exercise has a reference solution in [04_solution/](04_solution/). Try the exercise first, then compare.
 
@@ -107,9 +112,10 @@ Every exercise has a reference solution in [04_solution/](04_solution/). Try the
 
 - [01_setup/](01_setup/) — kernel selection, smoke test, Dinky guide. **Start here.**
 - [02_demo/](02_demo/) — minimal working notebooks for producer and consumer
-- [03_exercise/](03_exercise/) — six progressive Kafka notebooks plus the Flink SQL track
+- [03_exercise/](03_exercise/) — six progressive Kafka notebooks plus the Flink SQL track (Bluesky, delivery data, joins)
 - [04_solution/](04_solution/) — reference answers for every exercise
-- [examples/producer.py](examples/producer.py) — Python script that simulates riders and sends their GPS pings to `rider-locations`
+- [examples/producer.py](examples/producer.py) — Python script that simulates riders and sends their GPS pings to `rider-locations` (`--shifts`: riders take breaks, for the session windows of exercise 08)
+- [examples/order_producer.py](examples/order_producer.py) — Python script that places orders with status updates (`orders`) and payments (`payments`, some never come); `--late 3` sends one order that is 3 minutes late
 - [examples/consumer.py](examples/consumer.py) — Python script that prints messages from a topic
 - [examples/flink_rider_locations.sql](examples/flink_rider_locations.sql) — Flink SQL: pings and speed per rider and minute
 - [examples/flink_bluesky.sql](examples/flink_bluesky.sql) — Flink SQL source table for the Bluesky firehose
@@ -126,6 +132,9 @@ To run the example scripts in the Codespace, open a terminal in the repository r
 
 ```bash
 uv run --project streaming weeks/09-event-streaming/examples/producer.py   # 60 s of rider pings
+uv run --project streaming weeks/09-event-streaming/examples/producer.py --shifts --duration 1800   # 30 min, with breaks
+uv run --project streaming weeks/09-event-streaming/examples/order_producer.py   # orders + payments, 30 min
+uv run --project streaming weeks/09-event-streaming/examples/order_producer.py --late 3   # one late order
 uv run --project streaming weeks/09-event-streaming/examples/consumer.py   # stop with Ctrl+C
 ```
 

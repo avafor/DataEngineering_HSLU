@@ -5,7 +5,9 @@ SQL in the browser, it ships the job to the Flink cluster, and shows you
 results.
 
 You only need Dinky for the **Flink track**
-([../03_exercise/exercise_07_flink.md](../03_exercise/exercise_07_flink.md)).
+([../03_exercise/exercise_07_flink.md](../03_exercise/exercise_07_flink.md),
+[08](../03_exercise/exercise_08_flink_food.md) and
+[09](../03_exercise/exercise_09_flink_joins.md)).
 The Kafka notebooks don't use it.
 
 ## Open Dinky
