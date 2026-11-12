@@ -4,7 +4,7 @@
 SQL in the browser, it ships the job to the Flink cluster, and shows you
 results.
 
-You only need Dinky for the **Flink track**
+Do this **once per Codespace, before exercise 07**. You only need Dinky for the **Flink track**
 ([../03_exercise/exercise_07_flink.md](../03_exercise/exercise_07_flink.md),
 [08](../03_exercise/exercise_08_flink_food.md) and
 [09](../03_exercise/exercise_09_flink_joins.md)).
@@ -15,8 +15,9 @@ The Kafka notebooks don't use it.
 In VS Code, click the **PORTS** tab at the bottom → port `8888` → globe
 icon (*Open in Browser*).
 
-First time only: leave everything at its default → *Next* through any
-welcome dialogs. You'll land in the Dinky home page.
+First time only: Dinky asks you to **set the admin password**. Choose your
+own and note it down — you need it to log in again (user `admin`). Click
+*Next* through any further welcome dialogs; you'll land on the Dinky home page.
 
 > If the UI is in Chinese, open Dinky in an incognito tab — the
 > container patches the language on first run, but a cached old session
@@ -68,10 +69,13 @@ red, double-check the JobManager URL — it must be `http://flink-jobmanager:808
 
 The actual SQL editor is under **Data Studio** in the top menu.
 
-1. **Data Studio** → click the **+** in the file tree to create a new
-   task.
-2. Pick **FlinkSQL** as the type and give it any name (e.g. `scratch`).
-3. In the right-hand panel set **two** things:
+1. **Data Studio** → click the **+** in the file tree. A fresh Dinky has
+   no folder yet, so it first asks you to **create a root directory**:
+   enter a folder name, e.g. `deng`, and click **OK**. Without a folder
+   Dinky cannot create a task.
+2. Only now create the task: **right-click the new folder** → **Create Task**.
+3. Pick **FlinkSQL** as the type and give it any name (e.g. `scratch`).
+4. In the right-hand panel set **two** things:
    - **Cluster Configuration / Flink Instance** → `deng` (the cluster
      instance you registered in Step 1).
    - **Catalog** → `DefaultCatalog`.

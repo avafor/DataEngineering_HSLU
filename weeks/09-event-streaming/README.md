@@ -61,34 +61,9 @@ Open [01_setup/smoke_test.ipynb](01_setup/smoke_test.ipynb), select the kernel t
 
 Detailed walk-through and troubleshooting: [01_setup/README.md](01_setup/README.md).
 
-## 4. Tell Dinky where Flink lives (only for the Flink track)
+## 4. Set up Dinky — before exercise 07
 
-You can skip this until you start the Flink track ([03_exercise/exercise_07_flink.md](03_exercise/exercise_07_flink.md), [08](03_exercise/exercise_08_flink_food.md), [09](03_exercise/exercise_09_flink_joins.md)).
-
-1. Open **Dinky** (port `8888` in *PORTS*). On the welcome page, set your own admin password and note it down — you need it to log in again (user `admin`).
-2. Top menu: **Registration Center** → side menu: **Cluster** → **Cluster Instance** (⚠️ *not* "Cluster Config" — that's for Yarn).
-3. Click **+ Add**. A *Create Cluster Instance* dialog opens. Fill in:
-
-   | Field | Value |
-   |---|---|
-   | **Name** | `deng` (any short name) |
-   | **Alias** | `deng` (or blank) |
-   | **Type** | **`Standalone`** |
-   | **JobManager HA Address** | `flink-jobmanager:8081` |
-   | **Note** | blank |
-
-   The address must be `flink-jobmanager:8081` — that's the Docker service name. **Don't use `localhost`** — Dinky runs inside its own container and would only see itself.
-
-4. Click **Save**. The instance should appear with a green **Normal** status indicator.
-
-> ⚠️ **Whenever you create a new FlinkSQL task** (Data Studio → +), set in the right-hand panel:
->
-> - **Cluster Configuration** → `deng`
-> - **Catalog** → `DefaultCatalog`
->
-> Both are required. The catalog makes `CREATE TABLE` definitions visible across all tasks; the cluster sends jobs to the real Flink with the Kafka connector instead of Dinky's tiny built-in mini-cluster.
-
-Full walkthrough: [01_setup/dinky_guide.md](01_setup/dinky_guide.md).
+Dinky is only needed for the Flink exercises 07–09; the Python exercises 01–06 don't use it. Before exercise 07, set it up **once per Codespace** with the [Dinky guide](01_setup/dinky_guide.md): set your own password, register the Flink cluster and create your first task.
 
 ## 5. Work through the exercises
 

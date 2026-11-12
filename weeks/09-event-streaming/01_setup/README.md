@@ -94,10 +94,10 @@ Run all cells in [smoke_test.ipynb](smoke_test.ipynb). It:
 
 If everything prints "OK", you're ready for the exercises.
 
-## Step 4 — One-time Dinky setup
+## Later — Dinky setup before exercise 07
 
-Needed only when you start [the Flink track](../03_exercise/exercise_07_flink.md).
-See the dedicated walkthrough: [dinky_guide.md](dinky_guide.md).
+Not needed now. Before the Flink exercises (07–09) you set up Dinky once per
+Codespace with the [Dinky guide](dinky_guide.md).
 
 ## Troubleshooting
 
