@@ -74,7 +74,14 @@ The actual SQL editor is under **Data Studio** in the top menu.
    enter a folder name, e.g. `deng`, and click **OK**. Without a folder
    Dinky cannot create a task.
 2. Only now create the task: **right-click the new folder** → **Create Task**.
-3. Pick **FlinkSQL** as the type and give it any name (e.g. `scratch`).
+3. Pick **FlinkSQL** as the type and give it a name (e.g. `scratch`).
+
+   > **One task per exercise.** Dinky names every Flink job after the
+   > *task* it was started from, not after your SQL. If you reuse one task
+   > for several queries, all their jobs show up in the Flink UI under the
+   > same name. Create a new task for each step and name it after it —
+   > e.g. `s6_english`, `task_a_german`, `task_g_my_post` — then you see at
+   > a glance which job belongs to which exercise.
 4. In the right-hand panel set **two** things:
    - **Cluster Configuration / Flink Instance** → `deng` (the cluster
      instance you registered in Step 1).
