@@ -1,5 +1,10 @@
 # Flink SQL on the Bluesky Firehose
 
+> **A fresh start.** This exercise does not build on the Python exercises
+> 01–06: it uses a new data source, the live Bluesky stream, and a new tool,
+> Dinky. Everything you need is set up in steps S1–S6 below. Inside this
+> exercise the tasks are called A–G, the setup steps S1–S6.
+
 ## Background
 
 [Bluesky](https://bsky.app) is a decentralised social network similar to
@@ -150,12 +155,12 @@ appear and fill up. Then stop the job (red ■).
 
 ---
 
-## Exercise 01 — filter German posts to a new topic
+## Task A — filter German posts to a new topic
 
 **Goal:** every German post from the firehose lands in its own topic
 `bluesky-german` — continuously, as long as the job runs.
 
-**What you do:** the same as in S6, only for German (`'de'` instead of
+**What you do:** the same as in setup step S6 above (English posts), only for German (`'de'` instead of
 `'en'`). It takes two statements in a Dinky task:
 
 1. **Create the sink.** A *sink* is a Flink table that holds no data
@@ -165,7 +170,7 @@ appear and fill up. Then stop the job (red ■).
 2. **Start the streaming job.** An `INSERT INTO … SELECT … FROM
    bluesky_posts WHERE …` reads the firehose, keeps only the German
    posts and writes them into the sink. This one you write yourself,
-   with S6 as the template: same columns, different table and language.
+   with setup step S6 as the template: same columns, different table and language.
 
 ### Step 1 — create the sink (copy and run once)
 
@@ -205,7 +210,7 @@ arrive within seconds.
 
 ---
 
-## Exercise 02 — tumbling window: posts per language (2 min)
+## Task B — tumbling window: posts per language (2 min)
 
 **Goal:** count how many posts arrive in **English (`en`), German (`de`),
 French (`fr`), Italian (`it`)** every 2 minutes. Write the per-window
@@ -264,7 +269,7 @@ SELECT * FROM language_counts;
 
 ---
 
-## Exercise 03 — tumbling window: total posts (3 min)
+## Task C — tumbling window: total posts (3 min)
 
 **Goal:** count all posts every 3 minutes, regardless of language.
 
@@ -295,11 +300,11 @@ Hints: no `WHERE` needed; `GROUP BY TUMBLE(proc_time, INTERVAL '3' MINUTES)`.
 **Questions**
 
 - How many posts arrive in 3 minutes? Does the rate vary over time?
-- Why exactly 1 row per window (compared to Exercise 02)?
+- Why exactly 1 row per window (compared to Task B)?
 
 ---
 
-## Exercise 04 — sliding (hopping) window: language trends
+## Task D — sliding (hopping) window: language trends
 
 **Goal:** track each language with a **10-minute** wide window that **slides
 every 2 minutes** — a smoother trend curve than tumbling.
@@ -344,13 +349,13 @@ Hints — `HOP()` takes **slide first, then size**:
 
 **Questions**
 
-- How does the output rate compare to Exercise 02?
+- How does the output rate compare to Task B?
 - Why do consecutive windows overlap?
 - How many windows does a single event belong to? (size / slide)
 
 ---
 
-## Exercise 05 — session window: per-user activity bursts
+## Task E — session window: per-user activity bursts
 
 **Goal:** group posts per user (`did`) into **sessions**: a session ends when
 the user is silent for 60 seconds.
@@ -398,7 +403,7 @@ Hints:
 
 ---
 
-## Exercise 06 — reply rate per 5-minute window
+## Task F — reply rate per 5-minute window
 
 **Goal:** for each 5-minute tumbling window, compute the percentage of posts
 that are replies (`is_reply = TRUE`). No sink — just a `SELECT` to look at.
@@ -419,7 +424,7 @@ Hints:
 
 ---
 
-## Exercise 07 — bonus: see your own post arrive
+## Task G — bonus: see your own post arrive
 
 **Goal:** filter the firehose for the keyword `HSLU_Flink`, post that string from
 your own Bluesky account, and watch it appear in your Flink output within
