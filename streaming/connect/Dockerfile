@@ -1,4 +1,4 @@
-FROM docker.redpanda.com/redpandadata/connect:latest
+FROM redpandadata/connect:4.115.1
 
 COPY bluesky.yaml /etc/redpanda-connect/bluesky.yaml
 
