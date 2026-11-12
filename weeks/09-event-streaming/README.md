@@ -18,7 +18,7 @@ Work hands-on with the food-delivery story from the lecture: Anna orders a pizza
 
 ## Before you start
 
-Nothing is installed on your laptop: everything runs in **GitHub Codespaces**, a development computer in the browser.
+Nothing is installed on your laptop: everything runs in **GitHub Codespaces**, a development computer in the browser ([What are GitHub Codespaces?](https://docs.github.com/en/codespaces/about-codespaces/what-are-codespaces)).
 
 > **Sign in to GitHub with your private account.** The Codespace runs on the free monthly quota of the account you are signed in with. Check the avatar at the top right of github.com before you click *Create codespace*. The free quota lasts about 30 hours with the 4-core machine this course uses.
 
