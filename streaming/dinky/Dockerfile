@@ -12,3 +12,9 @@ RUN curl -fSL https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connecto
 # fails on startup.
 RUN curl -fSL https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.3.0/mysql-connector-j-8.3.0.jar \
         -o /opt/dinky/lib/mysql-connector-j-8.3.0.jar
+
+# flink-table-planner and flink-table-planner-loader must not both be on the
+# classpath (Dinky FAQ). The image ships both; with the loader present, jobs
+# randomly fail with "Could not initialize class ...PlannerModule". Keep the
+# full planner, remove the loader.
+RUN rm -f /opt/dinky/extends/flink1.20/flink-table-planner-loader-*.jar
