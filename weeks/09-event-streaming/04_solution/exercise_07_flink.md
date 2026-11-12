@@ -9,6 +9,9 @@ Task and reference answer side by side for [03_exercise/exercise_07_flink.md](..
 **Goal:** every German post from the firehose lands in its own topic
 `bluesky-german` — continuously, as long as the job runs.
 
+«German» means: the post's **first language tag** is `de` — the field
+`langs` you looked at in setup step S2, so the filter is `langs[1] = 'de'`.
+
 **What you do:** the same as in setup step S6 above (English posts), only for German (`'de'` instead of
 `'en'`). It takes two statements in a Dinky task:
 

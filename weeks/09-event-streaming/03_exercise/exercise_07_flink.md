@@ -32,37 +32,77 @@ In this track you'll:
 
 ## Setup
 
-Do these four steps once. After that, every exercise can re-use the
-`bluesky_posts` source table without re-creating it.
+### How the posts get to you
 
-### S1 — Start the Bluesky firehose
+Before you write a single query, look at the path a post takes — four
+stations, and you set up each of them in the steps below:
 
-In a VS Code terminal, from the repository root (where a new terminal starts):
+| Station | What it is | Step |
+|---|---|---|
+| **Bluesky Jetstream** | Bluesky's public WebSocket: every new post worldwide is pushed out the moment it is written | — (runs on the internet) |
+| **Redpanda Connect** | a small program in your Codespace that listens to the WebSocket, keeps a few fields of each post and writes it as **one event** into Redpanda | S1 |
+| **Topic `bluesky`** | where the posts pile up in Redpanda, one event per post | S2 |
+| **Table `bluesky_posts`** | a Flink SQL table *over* the topic: it stores nothing itself, Flink reads the topic whenever a query runs | S4, S5 |
+
+Your queries (S6, tasks A–G) read from `bluesky_posts` and write their
+results into new topics.
+
+Do steps S1–S6 once. After that, every task re-uses the `bluesky_posts`
+table without re-creating it.
+
+### S1 — Pull the posts in: start Redpanda Connect
+
+Nothing arrives by itself — you have to switch the feed on. In a VS Code
+terminal, from the repository root (where a new terminal starts):
 
 ```bash
 docker compose -f streaming/docker-compose.yml --profile bluesky up -d redpanda-connect
 ```
 
-This starts a small service (Redpanda Connect) that subscribes to the
-Bluesky Jetstream WebSocket, flattens each post to a tidy JSON object
-([`streaming/connect/bluesky.yaml`](../../../streaming/connect/bluesky.yaml)) and writes
-it to the Redpanda topic `bluesky`.
-
-Stop it again later with:
+This starts **Redpanda Connect**. Its recipe is
+[`streaming/connect/bluesky.yaml`](../../../streaming/connect/bluesky.yaml):
+connect to the Jetstream WebSocket, take each new post, keep a handful of
+fields and write it to the topic `bluesky`. It keeps running in the
+background until you stop it:
 
 ```bash
 docker compose -f streaming/docker-compose.yml --profile bluesky stop redpanda-connect
 ```
 
-### S2 — Verify in Redpanda Console
+### S2 — Look at the posts in Redpanda Console
 
 Open **Redpanda Console** (port `8080` in the *PORTS* tab) → *Topics* →
-`bluesky`. You should see new messages arriving once a second or two.
+`bluesky`. New messages arrive every second. Click on one to open it. It
+looks like this (shortened):
+
+```json
+{
+  "did": "did:plc:4f2k…",
+  "text": "Guten Morgen aus Luzern!",
+  "langs": ["de"],
+  "created_at": "2026-11-12T08:15:02.120Z",
+  "is_reply": false,
+  "timestamp": "2026-11-12T08:15:02.481Z"
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `did` | the author's account id (anonymous-looking, but public) |
+| `text` | the text of the post |
+| `langs` | the **language tags** of the post — a list, e.g. `["de"]` or `["en", "de"]`. The Bluesky app sets them when the post is written (from the phone's language or chosen by the author). Sometimes the list is empty. |
+| `created_at` | when the author wrote the post |
+| `is_reply` | `true` if the post answers another post |
+| `timestamp` | when Redpanda Connect received it |
+
+`langs` is the field you will filter on: German posts are the ones with
+`de` in the list.
 
 ### S3 — Register the Flink cluster in Dinky (once per Codespace)
 
-Walked through in [../01_setup/dinky_guide.md](../01_setup/dinky_guide.md).
-Cluster name `deng`, JM Address `flink-jobmanager:8081`, Type `Standalone`.
+If you have not done it yet: follow the
+[Dinky guide](../01_setup/dinky_guide.md) — own password, cluster `deng`
+(`flink-jobmanager:8081`, type `Standalone`), a folder and a first task.
 
 ### S4 — Create the source table
 
@@ -76,6 +116,11 @@ In Dinky → Data Studio → new FlinkSQL task.
 > Without `DefaultCatalog` your table is invisible to other tasks. Without
 > `deng` the SQL runs in Dinky's local mini-cluster, which has no Kafka
 > connector and your `INSERT INTO` will fail with cryptic errors.
+
+This statement tells Flink: «there is a topic `bluesky` with JSON posts;
+show it to me as a table with these columns». It copies nothing. Flink
+reads the topic only when a query uses the table. `'scan.startup.mode' =
+'latest-offset'` means: start with the posts that arrive *from now on*.
 
 Run this **once**:
 
@@ -119,13 +164,21 @@ In a new task, run:
 SELECT `text`, langs, is_reply, created_at FROM bluesky_posts;
 ```
 
-Posts appear in the **Result** tab as they arrive. Stop the job (red ■)
-when you've seen enough — it occupies a slot.
+Posts appear in the **Result** tab as they arrive. Look at the column
+`langs`: you see `[en]`, `[ja]`, `[pt]`, `[de]` … — the language tags from
+S2. Stop the job (red ■) when you've seen enough — it occupies a slot.
 
 ### S6 — Tutorial: filter English posts to a new topic
 
 This is the canonical pattern (filter → write back to Kafka) and the
-basis for most exercises. Run it in a new task — *don't* run all the
+basis for most tasks: keep only the English posts and write them into a
+new topic `bluesky-english`.
+
+- `CREATE TABLE bluesky_english …` creates the **sink**: a table whose
+  rows are written into the topic `bluesky-english`.
+- `INSERT INTO bluesky_english SELECT … FROM bluesky_posts WHERE langs[1] = 'en'`
+  reads every new post, keeps it if its **first** language tag is `en`
+  (`langs[1]` — SQL arrays start at 1) and writes it into the sink. Run it in a new task — *don't* run all the
 later exercises if a slot is occupied here.
 
 ```sql
@@ -159,6 +212,9 @@ appear and fill up. Then stop the job (red ■).
 
 **Goal:** every German post from the firehose lands in its own topic
 `bluesky-german` — continuously, as long as the job runs.
+
+«German» means: the post's **first language tag** is `de` — the field
+`langs` you looked at in setup step S2, so the filter is `langs[1] = 'de'`.
 
 **What you do:** the same as in setup step S6 above (English posts), only for German (`'de'` instead of
 `'en'`). It takes two statements in a Dinky task:
