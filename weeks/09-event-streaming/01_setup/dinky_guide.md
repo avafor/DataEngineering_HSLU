@@ -99,8 +99,22 @@ Paste a tiny test:
 SELECT 'hello from flink' AS msg;
 ```
 
-Click the green ▶ **Execute** button (top-right of the editor). After
-~10 s the **Result** tab at the bottom shows one row.
+Dinky has **two** run buttons in the toolbar above the editor — pick the
+right one:
+
+| Button | Use it for | Where the rows go |
+|---|---|---|
+| red 🐞 **Search** (debug, `Shift+F9`) | **`SELECT`** — when you want to *see* rows | the **Result** tab at the bottom |
+| green ▶ **Execute** (`Shift+F10`) | **`INSERT INTO`** and `CREATE TABLE` — jobs that write somewhere | into the sink topic; nothing shows in Result |
+
+Run the test with **🐞 Search**. After ~10 s the **Result** tab at the
+bottom shows one row. For a streaming `SELECT` (e.g. on `bluesky_posts`)
+the rows keep coming; if the tab does not refresh by itself, click
+**Get the latest data**.
+
+> The **Flink UI** (port `8081`) only shows *that* a job runs, not its
+> rows. Its counters *Records Received/Sent* stay at `0` when source and
+> sink are chained into one box — that is normal.
 
 Stop a job with the red ■ button.
 
@@ -151,4 +165,5 @@ CREATE TABLE IF NOT EXISTS my_topic_table (
 | `No more slots available` | another job is hogging a slot. Go to the previous task → red ■. |
 | Cluster status is **Abnormal** | JobManager URL wrong. It must be `http://flink-jobmanager:8081` (Docker DNS, not `localhost`). |
 | `Result` tab shows nothing | the source topic is empty. Check Redpanda Console. For Bluesky: did you start the firehose? |
+| You ran a `SELECT` and the Result tab stays empty | you used ▶ **Execute**: it submits the job but collects no rows. Stop it (■) and run the `SELECT` with 🐞 **Search**. If it is a streaming source: is data arriving (Redpanda Console)? |
 | You hit **Execute** and nothing happens | look at the bottom-left status bar — if it says "submitting…" wait. Otherwise check that the task's *Cluster Configuration* is set. |

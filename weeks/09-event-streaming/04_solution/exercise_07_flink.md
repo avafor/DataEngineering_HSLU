@@ -173,7 +173,9 @@ same task: `bluesky_posts` must be in the list.
 
 ### S5 — First sanity-check query
 
-In a new task, run:
+In a new task, run this with the red 🐞 **Search** button (`Shift+F9`), not
+with ▶ *Execute* — only *Search* shows the rows in the **Result** tab
+(see the [Dinky guide](../01_setup/dinky_guide.md), step 3):
 
 ```sql
 SELECT `text`, langs, is_reply, created_at FROM bluesky_posts;

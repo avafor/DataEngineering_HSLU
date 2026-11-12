@@ -86,6 +86,10 @@ As in exercise 07: Dinky (port `8888`) → Data Studio → new FlinkSQL task.
 > The one-time cluster registration is in
 > [../01_setup/dinky_guide.md](../01_setup/dinky_guide.md).
 
+> **Which button?** Run every `SELECT` in this exercise with the red 🐞
+> **Search** button (`Shift+F9`) — only then the rows appear in the
+> **Result** tab. ▶ *Execute* is for `CREATE TABLE` and `INSERT INTO`.
+
 > **Prefer a terminal?** The Flink SQL client works as well:
 > `docker exec -it flink-jobmanager ./bin/sql-client.sh`, then
 > `SET 'sql-client.execution.result-mode' = 'tableau';` so results

@@ -57,6 +57,11 @@ topics `orders` and `payments` fill up.
 ### S2 — Source tables
 
 Use Dinky as in exercise 08 (Cluster `deng`, Catalog `DefaultCatalog`).
+
+> **Which button?** Run every `SELECT` in this exercise with the red 🐞
+> **Search** button (`Shift+F9`) — only then the rows appear in the
+> **Result** tab. ▶ *Execute* is for `CREATE TABLE` and `INSERT INTO`.
+
 You need the table `orders` from
 [exercise 08, step S3](exercise_08_flink_food.md#s3--create-the-source-tables)
 — create it again if it's missing. Then create `payments`:
