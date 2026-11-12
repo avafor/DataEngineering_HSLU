@@ -6,9 +6,22 @@ Task and reference answer side by side for [03_exercise/exercise_07_flink.md](..
 
 ## Exercise 01 — filter German posts to a new topic
 
-**Goal:** mirror the English filter from S6 — but for German.
+**Goal:** every German post from the firehose lands in its own topic
+`bluesky-german` — continuously, as long as the job runs.
 
-### Step 1 — create the sink (Dinky, once)
+**What you do:** the same as in S6, only for German (`'de'` instead of
+`'en'`). It takes two statements in a Dinky task:
+
+1. **Create the sink.** A *sink* is a Flink table that holds no data
+   itself — everything you insert into it is written to a Kafka topic.
+   Here: table `bluesky_german` → topic `bluesky-german`. The statement
+   is given below; copy it and run it once.
+2. **Start the streaming job.** An `INSERT INTO … SELECT … FROM
+   bluesky_posts WHERE …` reads the firehose, keeps only the German
+   posts and writes them into the sink. This one you write yourself,
+   with S6 as the template: same columns, different table and language.
+
+### Step 1 — create the sink (copy and run once)
 
 ```sql
 CREATE TABLE IF NOT EXISTS bluesky_german (
@@ -26,6 +39,9 @@ CREATE TABLE IF NOT EXISTS bluesky_german (
 ```
 
 ### Step 2 — write the streaming job
+
+Write the `INSERT INTO` statement and run it. It keeps running — stop it
+later with the red ■.
 
 **Solution:**
 
