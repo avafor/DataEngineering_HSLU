@@ -13,6 +13,7 @@ You do not need to understand the weekly tools to follow these preparation steps
 | 5 | [Week 5](week-05.md) | Kestra and PostgreSQL image downloads; retain existing taxi files |
 | 6 | [Week 6](week-06.md) | Continue with the Week 5 Kestra environment and taxi data |
 | 8 | [Week 8](week-08.md) | Databricks Free Edition account and a first query |
+| 10 | [Week 10](week-10.md) | Databricks Free Edition from week 8, pull the Git folder, free Kafka service on Aiven |
 | 11 | [Week 11](week-11.md) | Google Cloud access, Google Cloud CLI authentication, and Terraform installation |
 
 Week 3 is reserved for project presentations; there is no practical lab or download checklist.
