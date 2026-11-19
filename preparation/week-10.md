@@ -38,10 +38,51 @@ Aiven runs Apache Kafka for you. The free tier is enough for this course, and yo
    `deng-kafka`) and click **Create service**.
 4. Wait until the status says **Running**. This takes a few minutes.
 
-That's all for now. We create the topic and connect Databricks together in class.
+## 5. Prepare the connection
 
-A free service powers off after 24 hours without traffic, so yours will probably be off on the day of
-the class. That's fine: open the service, choose **Power on service** in the service menu (the three dots)
+Databricks logs in to your Kafka service with a user name and password (SASL) and checks the server with
+Aiven's certificate. Both need a few clicks in the Aiven Console, best done now while the service is running.
+
+**Turn on SASL.** A new service only accepts client certificates.
+
+1. Open your service → **Service settings** (left menu, at the bottom)
+2. Scroll down to **Advanced configuration** → **Configure**
+3. Find `kafka_authentication_methods.sasl`, choose `true`, then **Save changes**. Leave everything else as it is
+
+<img src="assets/week-10/aiven_sasl_enable.png" alt="Aiven dialog Advanced configuration: kafka_authentication_methods.sasl set to true, button Save changes" width="460">
+
+The service may restart; wait until it says **Running** again. Under **Advanced configuration** you
+now see:
+
+<img src="assets/week-10/aiven_sasl_enabled.png" alt="Advanced configuration of the service: kafka_authentication_methods.sasl Enabled" width="700">
+
+**Create the topic.** **Topics** (left menu) → **Create topic**, name `orders`, leave replication and
+partitions empty (the free tier allows up to 5 topics with 2 partitions each) → **Create topic**.
+
+<img src="assets/week-10/aiven_create_topic.png" alt="Aiven dialog Create topic with the name orders" width="460">
+
+**Download the certificate.** **Overview** → box **Connection information** → tab **Apache Kafka**,
+authentication method **SASL**. Click the download arrow next to **CA certificate**: you get `ca.pem`.
+
+<img src="assets/week-10/aiven_connection_info.png" alt="Aiven Connection information, tab Apache Kafka, authentication method SASL selected, with Service URI, Host, Port, User avnadmin, Password and the download icon next to CA certificate" width="620">
+
+| Field | What it is | You need it |
+|---|---|---|
+| Host, Port | where the broker is. The SASL port is not the same as the client-certificate port, so copy it with SASL selected | in class |
+| User | `avnadmin` | in class |
+| Password | **Show** reveals it, the copy icon copies it | in class, typed into a widget, never into your code |
+| CA certificate | download arrow → `ca.pem` | keep the file, you upload it to Databricks in class |
+
+Don't see the **SASL** option? Then step «Turn on SASL» isn't saved yet, or the service is still rebuilding
+after the change. Wait until it says **Running** and reload the page.
+
+`ca.pem` is not a secret: it's Aiven's public certificate, so the Kafka client knows it talks to your real
+broker. The password is the secret. In class, it goes into a Databricks secret scope.
+
+## 6. On the day of the class
+
+A free service powers off when nobody uses it (after about 24 hours, sometimes earlier), so yours will
+probably be off on the day of the class. That's fine: open the service, choose **Power on service** in the service menu (the three dots)
 at the start of the lesson, and it's back after about five minutes.
 
 More about the free tier: [Aiven for Apache Kafka free tier](https://aiven.io/docs/products/kafka/free-tier/kafka-free-tier)
