@@ -36,15 +36,15 @@ The solid arrows show the **data pipeline**: data moves and changes. The dotted 
 ## Planned practical sequence
 
 1. [Map the local pipeline to a cloud platform](part-1-platform-map.md).
-2. Write the first Terraform configuration: provider, variables, bucket, and dataset.
-3. Use `terraform fmt`, `validate`, and `plan` before creating resources.
-4. Apply the configuration and inspect the resources in Google Cloud.
-5. Publish NYC Taxi data and verify it in BigQuery.
-6. Change, inspect, and finally remove the infrastructure safely.
+2. [Set up the Google Cloud project, billing and authentication](part-2-google-cloud-setup.md).
+3. [Create a bucket and BigQuery dataset with Terraform](part-3-terraform.md): complete the starter, inspect plans, apply, and check state.
+4. Refactor the configuration with variables and practise a controlled change.
+5. Configure the pipeline identity and its access permissions.
+6. Publish NYC Taxi data and verify it in BigQuery.
+7. Change, inspect, and finally remove the infrastructure safely.
 
-Only Part 1 is released at this stage. Later parts will be added and the [Week 11 preparation](../../preparation/week-11.md) will then identify the exact provider download required before class.
+Parts 1–3 are available, including a Terraform starter. Refactoring, pipeline access and the subsequent pipeline activities will follow. Before class, complete only the [coupon activation and tool installations](../../preparation/week-11.md); project creation and authentication are classroom activities.
 
 ## Project connection
 
-Terraform and cloud resources are final-project requirements; they are not required for the Week 7 midterm repository. The midterm submission still assesses the reproducible local ingestion and orchestration pipeline. Its repository URL and assessed commit hash or release tag are due on **22 October 2026 at 15:30 Europe/Zurich**, before the Week 6 session.
-
+The final project requires Terraform-managed Google Cloud resources and an orchestrated source → Cloud Storage → BigQuery pipeline. This week establishes the project and infrastructure for that work.

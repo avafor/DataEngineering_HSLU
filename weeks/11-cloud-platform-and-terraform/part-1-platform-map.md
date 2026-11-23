@@ -83,3 +83,5 @@ Terraform will manage actions 1, 3, and 6 in this practical. The pipeline will p
 
 **Finish with:** one labelled architecture containing the source, ingestion, Cloud Storage, BigQuery source table, transformation, curated table, consumer, and Terraform.
 
+
+[Next: set up your Google Cloud project](part-2-google-cloud-setup.md)
