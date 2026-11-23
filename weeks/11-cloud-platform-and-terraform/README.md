@@ -4,15 +4,18 @@
 
 ## Goal
 
-Extend the NYC Taxi example from one local database to a small cloud data platform. By the end of the practical, you should be able to:
+Prepare the cloud infrastructure for the NYC Taxi example. By the end of the two-hour session, you should be able to:
 
 - distinguish a data lake, data warehouse, and data mart;
 - explain the difference between ETL and ELT;
 - distinguish infrastructure provisioning from a data pipeline;
 - read and write a small Terraform configuration;
 - inspect a Terraform plan before creating resources;
-- provision a Google Cloud Storage bucket and BigQuery dataset; and
-- publish and verify NYC Taxi data using those resources.
+- configure a service account and its permissions for Terraform;
+- provision and inspect an empty Google Cloud Storage bucket and BigQuery dataset; and
+- remove the exercise resources with `terraform destroy`.
+
+Refactoring the configuration with variables is an extension if time permits, or an independent follow-up exercise.
 
 ## From Week 5 to Week 11
 
@@ -33,17 +36,20 @@ flowchart LR
 
 The solid arrows show the **data pipeline**: data moves and changes. The dotted arrows show **infrastructure provisioning**: Terraform creates and configures the places where the data will live. Terraform does not replace ingestion or transformation.
 
-## Planned practical sequence
+This diagram shows the wider architecture. This session covers the infrastructure; downloading, uploading, loading and transforming taxi data are follow-up work.
+
+## Classroom practical sequence
 
 1. [Map the local pipeline to a cloud platform](part-1-platform-map.md).
-2. [Set up the Google Cloud project, billing and authentication](part-2-google-cloud-setup.md).
-3. [Create a bucket and BigQuery dataset with Terraform](part-3-terraform.md): complete the starter, inspect plans, apply, and check state.
-4. [Refactor the configuration with variables and practise a controlled change](part-4-terraform-variables.md).
-5. Configure the pipeline identity and its access permissions.
-6. Publish NYC Taxi data and verify it in BigQuery.
-7. Change, inspect, and finally remove the infrastructure safely.
+2. [Set up the Google Cloud project, billing and authentication](part-2-google-cloud-setup.md), including the Terraform service account, permissions and JSON key.
+3. [Create a bucket and BigQuery dataset with Terraform](part-3-terraform.md): complete the starter, inspect plans, apply, check state, and finish by removing the exercise resources with `terraform destroy`.
+4. **Optional extension:** [refactor the configuration with variables and practise a controlled change](part-4-terraform-variables.md).
 
-Parts 1–4 are available, including a Terraform starter and a variables exercise. Pipeline access and the subsequent pipeline activities will follow. Before class, complete only the [coupon activation and tool installations](../../preparation/week-11.md); project creation and authentication are classroom activities.
+Parts 1–4 are available. Parts 1–3 form the core session; Part 4 can be completed independently. Before class, complete only the [coupon activation and tool installations](../../preparation/week-11.md); project creation and authentication are classroom activities.
+
+## Follow-up work
+
+In a later pipeline activity, configure the pipeline identity and its access permissions, then use Kestra to coordinate downloading taxi data, uploading it to Cloud Storage, loading it into BigQuery and verifying the results. These activities are not required to finish this session.
 
 ## Project connection
 

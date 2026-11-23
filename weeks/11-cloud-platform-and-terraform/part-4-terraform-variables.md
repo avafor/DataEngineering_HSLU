@@ -48,9 +48,11 @@ variable "project_id" {
 
 This declares an input named `project_id`. `string` means its value is text. It does not yet supply the project ID.
 
-**Your turn:** Fill the spaces marked TODO in `variables.tf` with declarations for `bucket_name`, `dataset_id` and `location`. Use `string` for all four variables and give each a meaningful description. Do not add defaults for this exercise; provide the values in the next step.
+**Your turn:** Fill the spaces marked TODO in `variables.tf` with declarations for `bucket_name`, `dataset_id` and `location`. Use `string` for all four variables and give each a meaningful description. In the next step, choose how to supply their values: in a separate file or directly as defaults.
 
 ## 3. Supply your values
+
+### Option A: Put values in terraform.tfvars
 
 Create **`terraform.tfvars`** in the same directory. Complete the following with the values you recorded in Step 1:
 
@@ -64,6 +66,24 @@ location    = "EU"
 Replace every placeholder. Use `EU` only if that was the location of both resources in Part 3. This file assigns values; it does not contain `variable` blocks.
 
 The supplied `.gitignore` keeps your local `terraform.tfvars` out of Git. The IDs here are not passwords, but keeping personal settings separate makes the shared exercise easier to reuse. Do not put the JSON key contents into any Terraform file. A shared example can be named `terraform.tfvars.example`; Terraform will not automatically load that example filename.
+
+### Option B: Put values directly in variables.tf using default
+
+You can also supply **all four input values directly in `variables.tf`**. Add a `default` to each variable declaration. For example:
+
+```hcl
+variable "bucket_name" {
+  description = "Globally unique name of the Cloud Storage bucket."
+  type        = string
+  default     = "forooz-dengtaxi-taxi-raw"
+}
+```
+
+Use your own bucket name from Part 3. Here, `bucket_name` is the variable's name, and `default` supplies the actual bucket name. In `main.tf`, `name = var.bucket_name` uses this value.
+
+Add defaults for `project_id`, `dataset_id` and `location` in the same way, keeping your existing values. **With defaults for all required inputs, you do not need `terraform.tfvars`: `main.tf` and `variables.tf` are sufficient.** The temporary empty project default must be replaced with your actual project ID.
+
+Both options are valid. If you supply a value in `terraform.tfvars` as well as a default, **the value in `terraform.tfvars` overrides the default**. For this exercise, choose one approach so it is clear where your values come from. Keep the service-account JSON key outside both files.
 
 ## 4. Use the variables in main.tf
 
@@ -89,7 +109,7 @@ After trying the changes yourself, compare your result with [main_var.tf.example
 
 ## 5. Predict and inspect the plan
 
-Save all three files. From the same `terraform` directory, run:
+Save `main.tf`, `variables.tf` and, if using Option A, `terraform.tfvars`. From the same `terraform` directory, run:
 
 ```sh
 terraform fmt
@@ -124,11 +144,11 @@ labels = {
 
 Run `terraform fmt`, `terraform validate` and `terraform plan`. With only this label added, expect **0 to add, 1 to change, 0 to destroy**. Find the label change in the plan. Apply it and inspect the bucket's labels in the Console.
 
-**Your turn:** Make the label's value configurable too. Declare a new string variable, assign its value in `terraform.tfvars`, and reference it from `labels`. Keep the value `deng`. What should the next plan show?
+**Your turn:** Make the label's value configurable too. Declare a new string variable, assign its value in `terraform.tfvars` or as a `default`, and reference it from `labels`. Keep the value `deng`. What should the next plan show?
 
 ## 7. Explain your design
 
-Show a partner the three files and answer:
+Show a partner your configuration files and answer:
 
 1. Where do you declare that a project ID is required, and where do you supply its value?
 2. Why does moving an unchanged value into a variable not require a new bucket?
