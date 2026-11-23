@@ -35,7 +35,9 @@ Terraform reads the `.tf` files in this directory together. You do not import `v
 
 ## 2. Declare the variables
 
-Create **`variables.tf`** beside `main.tf`. Start with this declaration:
+Open the supplied [terraform/variables.tf](terraform/variables.tf) beside `main.tf`. It contains a completed `project_id` example and spaces with instructions for the remaining variables.
+
+First remove the temporary `default = ""` line from the example. It only prevents an unused input prompt during Part 3, before `main.tf` uses variables. Your declaration should now look like this:
 
 ```hcl
 variable "project_id" {
@@ -46,7 +48,7 @@ variable "project_id" {
 
 This declares an input named `project_id`. `string` means its value is text. It does not yet supply the project ID.
 
-**Your turn:** Add declarations for `bucket_name`, `dataset_id` and `location`. Use `string` for all four variables and give each a meaningful description. Do not add defaults for this exercise; provide the values in the next step.
+**Your turn:** Fill the spaces marked TODO in `variables.tf` with declarations for `bucket_name`, `dataset_id` and `location`. Use `string` for all four variables and give each a meaningful description. Do not add defaults for this exercise; provide the values in the next step.
 
 ## 3. Supply your values
 
@@ -82,6 +84,8 @@ provider "google" {
 - Both resources' `location`: refer to the same `location` variable.
 
 Keep the provider version, resource types, Terraform resource names and other settings unchanged. This is a refactoring exercise, not a request to create different resources.
+
+After trying the changes yourself, compare your result with [main_var.tf.example](terraform/main_var.tf.example). It shows the provider, bucket and dataset using all four variables. Terraform ignores its `.example` extension. If you use it directly, replace the contents of `main.tf` with the example's contents; do not create a second active `.tf` file with the same resource definitions. Complete `variables.tf` and `terraform.tfvars` as described above.
 
 ## 5. Predict and inspect the plan
 
