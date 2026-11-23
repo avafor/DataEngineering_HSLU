@@ -38,12 +38,12 @@ The solid arrows show the **data pipeline**: data moves and changes. The dotted 
 1. [Map the local pipeline to a cloud platform](part-1-platform-map.md).
 2. [Set up the Google Cloud project, billing and authentication](part-2-google-cloud-setup.md).
 3. [Create a bucket and BigQuery dataset with Terraform](part-3-terraform.md): complete the starter, inspect plans, apply, and check state.
-4. Refactor the configuration with variables and practise a controlled change.
+4. [Refactor the configuration with variables and practise a controlled change](part-4-terraform-variables.md).
 5. Configure the pipeline identity and its access permissions.
 6. Publish NYC Taxi data and verify it in BigQuery.
 7. Change, inspect, and finally remove the infrastructure safely.
 
-Parts 1–3 are available, including a Terraform starter. Refactoring, pipeline access and the subsequent pipeline activities will follow. Before class, complete only the [coupon activation and tool installations](../../preparation/week-11.md); project creation and authentication are classroom activities.
+Parts 1–4 are available, including a Terraform starter and a variables exercise. Pipeline access and the subsequent pipeline activities will follow. Before class, complete only the [coupon activation and tool installations](../../preparation/week-11.md); project creation and authentication are classroom activities.
 
 ## Project connection
 

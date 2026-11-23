@@ -236,6 +236,8 @@ The state list should be empty. Because `main.tf` still describes the two resour
 
 Our bucket uses `force_destroy = false`. If you uploaded objects, Terraform will refuse to delete the nonempty bucket. Check its contents before removing any exercise files; do not change that setting just to bypass the error. This practical expects an empty bucket and an empty dataset.
 
+Next: [Part 4 — Make the configuration reusable with variables](part-4-terraform-variables.md).
+
 ## If something fails
 
 | Symptom | What to check |
