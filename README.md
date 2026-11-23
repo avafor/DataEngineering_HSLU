@@ -34,6 +34,9 @@ By the end of the module, you should be able to:
 - [Week 4 — Transformation, serving, and protecting identifiers](weeks/04-transformation-and-serving/README.md)
 - [Week 5 — Workflow orchestration with Kestra](weeks/05-workflow-orchestration/README.md)
 - [Week 6 — Workflow orchestration continued](weeks/06-workflow-orchestration-continued/README.md)
+- [Week 8 — Batch processing with Spark on Databricks](weeks/08-spark-on-databricks/README.md)
+- [Week 9 — Event streaming with Kafka and Flink](weeks/09-event-streaming/README.md)
+- [Week 10 — Structured Streaming and incremental ingestion](weeks/10-structured-streaming-incremental/README.md)
 - [Week 11 — Cloud platform and Terraform](weeks/11-cloud-platform-and-terraform/README.md)
 
 ## Recurring example
