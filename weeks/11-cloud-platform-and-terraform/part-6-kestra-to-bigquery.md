@@ -226,6 +226,16 @@ GROUP BY source_month
 ORDER BY source_month;
 ```
 
+To check only the month you just processed, run this query in the **BigQuery SQL editor after `merge_trips` succeeds**. Replace the project ID and use the year and month from your execution. This example checks **February 2024**:
+
+```sql
+SELECT COUNT(*) AS records_for_month
+FROM `YOUR_PROJECT_ID.taxi_analytics.yellow_trips`
+WHERE source_month = DATE '2024-02-01';
+```
+
+A count greater than zero confirms that the consolidated table contains records labelled with that source month. Zero means no records are stored under that month. The `01` represents the first day used to label the file's month, not the trips' actual day. This checks that the month is present, not that every expected record was loaded; after an unchanged rerun, the count should remain the same.
+
 Check for repeated hashes. This query should return **no rows**:
 
 ```sql
