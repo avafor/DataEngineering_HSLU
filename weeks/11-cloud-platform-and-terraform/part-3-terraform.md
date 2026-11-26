@@ -202,7 +202,37 @@ Terraform's local state connects the resource names in your code to the resource
 **Discuss:** Why does running Terraform again not create a second bucket? Would a newly created folder containing only a copy of `main.tf` automatically have the same state?
 
 
-## 7. Remove the exercise resources
+## 7. What happens if the state file is deleted?
+
+**Deleting `terraform.tfstate` does not delete your bucket or dataset.** In this exercise, Terraform stores its state locally. That file records the connection between the resources in `main.tf` and the resources already created in Google Cloud.
+
+Consider this example:
+
+1. You run `terraform apply`. Terraform creates the bucket and dataset and records them in `terraform.tfstate`.
+2. You delete the state file, but leave `main.tf` unchanged. The resources still exist in Google Cloud.
+3. You run `terraform plan`. Without the previous state, Terraform treats the configured resources as new and proposes creating them again.
+4. If you apply that plan with the same bucket name and dataset ID, creation will typically fail because those resources already exist. Terraform does not automatically adopt an existing resource just because its name matches the configuration.
+
+| What remains? | After deleting the local state file |
+|---|---|
+| `main.tf` | Still describes the resources you want. |
+| Bucket and dataset in Google Cloud | Still exist, including any data they contain. |
+| Terraform's record of managing those resources | Lost unless you recover it. |
+
+**What about `terraform destroy`?** Without the state entries, Terraform cannot identify those existing resources as ones it manages. Running `destroy` does not discover and delete them from the project. They remain in Google Cloud, and any billable storage or usage can continue.
+
+### How would we recover?
+
+Do not change the resource names or repeatedly run `apply` to work around the error. Ask the instructor to help recover the connection:
+
+- **Restore a valid state backup**, if available. A local `terraform.tfstate.backup` may exist, but it can represent an earlier state; check that it matches the resources before using it. Review the next plan before applying anything.
+- **Import the existing resources** if no suitable backup is available. `terraform import` associates each existing cloud resource with its resource address in your configuration, such as `google_storage_bucket.raw_taxi`. Import does not create another bucket. The configuration must then be checked against the imported resource using `terraform plan`.
+
+Recovery is an explanation, not a deletion exercise: **keep your state file intact**. Use `terraform destroy` in the next section when you actually want to remove the cloud resources.
+
+**Remember:** `main.tf` describes what you want; `terraform.tfstate` records what Terraform manages. Neither file is a backup of the taxi data. `.terraform.lock.hcl` is different again: it records provider versions and checksums, not your cloud resources.
+
+## 8. Remove the exercise resources
 
 Finish the exercise by deleting the empty bucket and dataset using Terraform. Use the **same `terraform` directory and state** as before, with the service-account key still configured in your terminal.
 
@@ -248,7 +278,7 @@ Next: [Part 4 — Make the configuration reusable with variables](part-4-terrafo
 | Missing credentials | Set `GOOGLE_APPLICATION_CREDENTIALS` in this terminal and check that its JSON key file exists. Signing in to the Console does not supply Terraform with credentials. |
 | Wrong credentials | Check that the key belongs to the intended service account and that an old `GOOGLE_CREDENTIALS` setting or explicit provider `credentials` value is not overriding this setup. See Part 2. |
 | Permission denied | Check the service account's project roles with the instructor. A valid key authenticates the account but does not grant permissions. |
-| Bucket name already exists | Choose a different globally unique name and inspect the new plan. |
+| Bucket name already exists | For a new bucket, choose a globally unique name. If this is a bucket you previously created with Terraform, check that you are using the original directory and state; see section 7 before changing its name. |
 | Billing or API error | Check the coupon billing link in Part 2 section 3 and the enabled APIs in section 5. Confirm they belong to the project set in `main.tf`. |
 | One resource succeeds and the other fails | Correct the reported issue and rerun `plan`; retain the state so Terraform can track the successful resource. |
 
