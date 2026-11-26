@@ -6,7 +6,7 @@
 
 Create a Google Cloud project, connect it to your course coupon's billing account, and let your local tools access it. By the end, you should be able to explain the difference between your account, project, billing account and credentials.
 
-Complete these steps **in class**. Before class, you only needed to activate the emailed coupon with your student email address and install Google Cloud CLI and Terraform. See the [preparation checklist](../../preparation/week-11.md).
+Complete these steps **in class**. Before class, you only needed to activate the emailed coupon with your student email address and install Terraform. See the [preparation checklist](../../preparation/week-11.md).
 
 ## 1. Identify the account and billing account
 
@@ -32,7 +32,7 @@ For this classroom exercise, use your own project unless the instructor assigns 
 2. Select **New project**.
 3. Enter a recognizable project name, for example `DENG Week 11`.
 4. Check the generated **project ID**. You can edit it before creation, but it must be globally unique. Keep the generated suffix if necessary.
-5. If asked for an organization or location, use the location available to your student account. If account policies prevent creation, ask the instructor.
+5. If asked for an organization or location, select **No organization**. If this option is unavailable or account policies prevent project creation, ask the instructor.
 6. Select **Create**, wait for completion, then select the new project.
 
 Record the **project ID**, not just the display name or project number. We will use this ID in commands and later in Terraform. [Google's project-creation instructions](https://docs.cloud.google.com/resource-manager/docs/creating-managing-projects).
@@ -52,72 +52,36 @@ If you cannot select or link the account, ask the instructor to check access. Do
 
 **Checkpoint:** Explain the difference between having an activated coupon and having a project linked to its billing account.
 
-## 4. Connect your local terminal to the project
+## 4. Check Terraform in your local terminal
 
 Use a terminal **on your laptop**, not the browser's Cloud Shell or a Docker container. This is where we will run Terraform.
 
-Check the tools:
-
 ```sh
-gcloud version
 terraform version
 ```
 
-Sign in to the Google Cloud CLI:
-
-```sh
-gcloud auth login
-```
-
-A browser opens. Choose the same student account as in the Console and complete the sign-in.
-
-In every command below, replace `YOUR_PROJECT_ID` with the project ID you recorded. Set the project:
-
-```sh
-gcloud config set project YOUR_PROJECT_ID
-```
-
-Check both the account and the project:
-
-```sh
-gcloud auth list
-gcloud config get-value project
-```
-
-The active account should be your student account, and the project ID should match the Console. If the wrong account is active, select the correct signed-in account using `gcloud config set account YOUR_STUDENT_EMAIL`.
-
-Verify the project and billing:
-
-```sh
-gcloud projects describe YOUR_PROJECT_ID
-gcloud billing projects describe YOUR_PROJECT_ID
-```
-
-The billing output should show the expected `billingAccountName` and `billingEnabled: true`. This confirms billing is enabled; it does not show how much coupon credit remains. Check that in the Console. [Billing verification](https://docs.cloud.google.com/billing/docs/how-to/verify-billing-enabled).
+The command should print the installed Terraform version. You do not need to sign in to the Google Cloud CLI for this exercise. Terraform will authenticate using the service-account JSON key configured below, and Part 3 will set the project ID explicitly in `main.tf`.
 
 ## 5. Enable the services used by the practical
 
 An API lets tools access a Google Cloud service. Enabling an API makes the service available to the project; it does not create a bucket or dataset.
 
-Run this as one command:
+In the **Google Cloud Console**, first check that your course project is selected. Open **APIs & Services → Library** and search for each API below. Open its page and select **Enable**. If it already shows **Manage**, it is enabled.
 
-```sh
-gcloud services enable serviceusage.googleapis.com cloudresourcemanager.googleapis.com iam.googleapis.com storage.googleapis.com bigquery.googleapis.com --project=YOUR_PROJECT_ID
-```
+| API | Why we use it |
+|---|---|
+| **Cloud Storage API** (`storage.googleapis.com`) | Create and manage the storage bucket. |
+| **BigQuery API** (`bigquery.googleapis.com`) | Create and manage the BigQuery dataset. |
+| **Cloud Resource Manager API** (`cloudresourcemanager.googleapis.com`) | Required by Google's documented Terraform setup for creating BigQuery objects. |
+| **Identity and Access Management (IAM) API** (`iam.googleapis.com`) | Create the service account and its JSON key. |
 
-If prompted to enable Service Usage, accept it for this course project. If the command cannot enable that API, open **APIs & Services → Library** in the Console, enable **Service Usage API**, and rerun the command. Permission errors need the instructor's help; repeatedly retrying does not grant access.
+Afterward, open **APIs & Services → Enabled APIs & services** and verify these services are enabled. If account permissions prevent enabling a service, ask the instructor.
 
-Check the enabled services:
-
-```sh
-gcloud services list --enabled --project=YOUR_PROJECT_ID
-```
-
-Find Cloud Storage and BigQuery in the output. Enabling these services again is safe if they were already enabled. [Google's service-enabling instructions](https://docs.cloud.google.com/service-usage/docs/enable-disable).
+References: [enable APIs in the Console](https://docs.cloud.google.com/service-usage/docs/enable-disable), [BigQuery's Terraform requirements](https://docs.cloud.google.com/bigquery/docs/datasets), and [service-account setup](https://docs.cloud.google.com/iam/docs/service-accounts-create).
 
 ## 6. Create a service account and grant permissions
 
-Your student account handles the setup in the Console and `gcloud`. **Terraform will use a separate service account**, authenticated with a downloaded JSON key.
+Your student account handles the setup in the Console. **Terraform will use a separate service account**, authenticated with a downloaded JSON key.
 
 1. In the correct project, open **IAM & Admin → Service Accounts → Create service account**.
 2. Name it `terraform-week11` and select **Create and continue**.
@@ -168,7 +132,7 @@ For Windows PowerShell, replace the example path with your actual path:
 $env:GOOGLE_APPLICATION_CREDENTIALS = "C:\Users\YOUR_USERNAME\.config\deng\keys\terraform-week11.json"
 ```
 
-This environment variable contains the **path**, not the JSON contents. Terraform uses it to find the key and authenticate as the service account. It does not change the account used by `gcloud auth login` or select the resource project; Part 3 sets the project explicitly in `main.tf`.
+This environment variable contains the **path**, not the JSON contents. Terraform uses it to find the key and authenticate as the service account. The key identifies the service account; Part 3 sets the resource project explicitly in `main.tf`.
 
 On macOS/Linux, check the path and whether the file exists without printing its contents:
 
@@ -186,7 +150,7 @@ Test-Path $env:GOOGLE_APPLICATION_CREDENTIALS
 
 Repeat the environment-variable command when opening a new terminal. You do **not** need to generate another key. The path check only confirms that the file exists; the later Terraform operations check authentication and resource permissions.
 
-**Your turn:** Your `gcloud` commands work, but Terraform cannot find credentials. Which file and environment variable would you check? If the key is found but bucket creation is denied, which IAM account would you inspect?
+**Your turn:** You can open the project in the Console, but Terraform cannot find credentials. Which file and environment variable would you check? If the key is found but bucket creation is denied, which IAM account would you inspect?
 
 ## 9. Finish with a setup check
 
@@ -194,7 +158,7 @@ In your notes, record:
 
 - The project ID and the account you used.
 - Whether the intended billing account is linked and billing is enabled.
-- Whether Cloud Storage and BigQuery APIs are enabled.
+- Whether all four APIs listed in section 5 are enabled.
 - The service account email and its two assigned roles.
 - Whether `GOOGLE_APPLICATION_CREDENTIALS` points to the downloaded key in your current terminal.
 

@@ -8,7 +8,7 @@ Create a **Cloud Storage bucket** and a **BigQuery dataset** from a Terraform co
 
 Terraform prepares the infrastructure. Downloading taxi files, uploading them and loading tables are later pipeline tasks coordinated by Kestra. At the end of this exercise, the bucket and dataset will be empty.
 
-Complete [Part 2](part-2-google-cloud-setup.md) first: your project must have billing, the required APIs and a service account with Storage Admin and BigQuery Admin roles. Set `GOOGLE_APPLICATION_CREDENTIALS` to that service account's downloaded JSON key in the terminal you use here. Terraform acts as this service account, not your personal CLI account. Creating a separate pipeline identity with permissions for its data tasks is a later exercise.
+Complete [Part 2](part-2-google-cloud-setup.md) first: your project must have billing, the required APIs and a service account with Storage Admin and BigQuery Admin roles. Set `GOOGLE_APPLICATION_CREDENTIALS` to that service account's downloaded JSON key in the terminal you use here. Terraform acts as this service account, not the student account signed in to the Console. Creating a separate pipeline identity with permissions for its data tasks is a later exercise.
 
 ## 1. Open the starter and check your tools
 
@@ -17,7 +17,6 @@ From the **repository root**, run:
 ```sh
 cd weeks/11-cloud-platform-and-terraform/terraform
 terraform version
-gcloud config get-value project
 ```
 
 Keep this terminal in the `terraform` folder for all commands below. Open [terraform/main.tf](terraform/main.tf) in your editor. You can optionally install the **HashiCorp Terraform** VS Code extension for syntax highlighting and completion.
@@ -60,7 +59,7 @@ These are explanatory snippets, not extra blocks to add to the starter. Keep you
 
 If you explicitly set `project` inside the bucket resource, it overrides the provider's project **for that bucket**. The service account still needs permission in the selected project. The BigQuery dataset can also inherit the provider project.
 
-Here, “provider project” refers to the Terraform configuration, **not** the default project selected by `gcloud config set project`.
+Here, “provider project” refers to the Terraform configuration, **not** the project currently selected in the browser Console.
 
 ### Understand the starter settings
 
@@ -244,7 +243,7 @@ Next: [Part 4 — Make the configuration reusable with variables](part-4-terrafo
 |---|---|
 | `terraform` is not found | Return to the installation steps in the [preparation](../../preparation/week-11.md). |
 | No configuration files found | Run commands from the `terraform` directory containing `main.tf`. |
-| Missing credentials | Set `GOOGLE_APPLICATION_CREDENTIALS` in this terminal and check that its JSON key file exists. `gcloud auth login` alone is not sufficient. |
+| Missing credentials | Set `GOOGLE_APPLICATION_CREDENTIALS` in this terminal and check that its JSON key file exists. Signing in to the Console does not supply Terraform with credentials. |
 | Wrong credentials | Check that the key belongs to the intended service account and that an old `GOOGLE_CREDENTIALS` setting or explicit provider `credentials` value is not overriding this setup. See Part 2. |
 | Permission denied | Check the service account's project roles with the instructor. A valid key authenticates the account but does not grant permissions. |
 | Bucket name already exists | Choose a different globally unique name and inspect the new plan. |
