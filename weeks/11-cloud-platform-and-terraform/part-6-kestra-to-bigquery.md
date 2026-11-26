@@ -50,7 +50,6 @@ For this dedicated classroom project, use project-level grants as in Part 5:
 
 The project-level Data Editor role is a classroom simplification. It can instead be granted on just `taxi_analytics`; Job User must still be granted on the project. We do not need to give Kestra BigQuery Admin or reuse the Terraform service account.
 
-Your **student account** runs the SQL checks in the Console, while **Kestra's service account** runs the pipeline. If your student account lacks access, ask the instructor to check its query and table-read permissions separately.
 
 References: [BigQuery load requirements](https://docs.cloud.google.com/bigquery/docs/loading-data-cloud-storage-parquet) · [Cloud Storage roles](https://docs.cloud.google.com/storage/docs/access-control/iam-roles).
 
