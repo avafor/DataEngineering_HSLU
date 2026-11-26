@@ -90,8 +90,6 @@ my-course-project.taxi_analytics.yellow_trips_2024_01
 
 **Why include the month in the table name?** Replacing January's table should not erase February. This is a simple teaching design. A partitioned table holding multiple months is a later design option; do not use one shared table with full-table replacement for all months.
 
-**Explain before executing:** Why does the load task need the upload's `gs://` URI rather than the download's internal Kestra URI? Which service actually reads the Cloud Storage object and creates the table?
-
 ## 4. Save and execute the completed flow
 
 Save the edited **`taxi_to_bigquery` flow in Kestra**. Check that the editor recognizes `io.kestra.plugin.gcp.bigquery.LoadFromGcs` and accepts the configuration. Use the installed plugin's documentation if it differs from the latest online documentation; do not upgrade the course environment just to follow a newer example.
@@ -130,7 +128,11 @@ SELECT COUNT(*) AS trip_count
 FROM `YOUR_PROJECT_ID.taxi_analytics.yellow_trips_2024_01`;
 ```
 
-Record the count and compare it with the load job's output row count if available. Do not assume that Kestra SUCCESS alone proves the intended table was loaded.
+Record the SQL count. In Kestra, open the completed execution, select **Outputs → load_bigquery**, and find **rows**. This is the number of rows reported by the BigQuery load job started by that task. Compare it with your SQL `COUNT(*)` result for the destination table.
+
+![Kestra Outputs tab with load_bigquery selected, showing rows, jobId and destinationTable](assets/kestra-bigquery-load-outputs.png)
+
+The example above reports **2,964,624 loaded rows**. Your count depends on the source file you loaded. Also check **destinationTable** to confirm that the task loaded the intended table. Kestra **SUCCESS** alone does not establish this.
 
 Inspect a few fields:
 
