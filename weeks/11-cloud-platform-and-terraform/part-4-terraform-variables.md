@@ -158,3 +158,5 @@ Show a partner your configuration files and answer:
 Keep the resources if you are continuing to the data-pipeline exercise. If you are finishing the practical, use `terraform plan -destroy` and `terraform destroy` as in Part 3 to remove the empty exercise resources. Keep the configuration and state; you can recreate the resources with `terraform apply` later.
 
 Reference: [Terraform input variables](https://developer.hashicorp.com/terraform/language/values/variables).
+
+Next: [Part 5 — Upload a taxi file to Cloud Storage with Kestra](part-5-kestra-to-cloud-storage.md).

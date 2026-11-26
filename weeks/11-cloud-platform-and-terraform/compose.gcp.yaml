@@ -1,0 +1,13 @@
+# Add this file to the existing Week 5 Compose stack; do not run it alone.
+# Run the command in Part 5 from weeks/05-workflow-orchestration.
+services:
+  kestra:
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/kestra-gcp.json
+    volumes:
+      - type: bind
+        source: ${KESTRA_GCP_KEY_FILE:?Set KESTRA_GCP_KEY_FILE to the absolute path of the pipeline JSON key in the Week 5 .env}
+        target: /run/secrets/kestra-gcp.json
+        read_only: true
+        bind:
+          create_host_path: false

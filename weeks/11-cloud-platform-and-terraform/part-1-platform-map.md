@@ -67,7 +67,7 @@ flowchart TD
 
 **The dotted arrows mean “creates the infrastructure.”** Terraform creates the bucket and the BigQuery dataset. Creating these containers does not download a file, load a table or calculate a report. Pipeline tasks perform those actions; Kestra can coordinate when they run and in which order.
 
-**For this session:** we create the bucket and dataset with Terraform. Loading taxi data, transforming it in BigQuery and serving a report are follow-up work. The complete diagram explains what those resources will be used for later.
+**For this session:** we create the bucket and dataset with Terraform. Optional [Part 5](part-5-kestra-to-cloud-storage.md) uploads one file to the bucket. Loading it into BigQuery, transforming it and serving a report are later follow-up work. The complete diagram explains what those resources will be used for later.
 
 ## 5. Decide what Terraform should manage
 
