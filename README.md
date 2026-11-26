@@ -39,6 +39,7 @@ By the end of the module, you should be able to:
 - [Week 9 — Event streaming with Kafka and Flink](weeks/09-event-streaming/README.md)
 - [Week 10 — Structured Streaming and incremental ingestion](weeks/10-structured-streaming-incremental/README.md)
 - [Week 11 — Cloud platform and Terraform](weeks/11-cloud-platform-and-terraform/README.md)
+- [Week 12 — Data modeling and BigQuery](weeks/12-data-modeling-and-bigquery/README.md)
 
 ## Recurring example
 

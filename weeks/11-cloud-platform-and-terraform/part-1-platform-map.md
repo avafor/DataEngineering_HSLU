@@ -46,7 +46,7 @@ The diagram below shows the planned data path. You do not need to create these t
 
 ```mermaid
 flowchart TD
-    S["NYC TLC: monthly Parquet file"] --> I["Download and upload task<br/>Python, orchestrated by Kestra"]
+    S["NYC TLC: monthly Parquet file"] --> I["Download and upload tasks<br/>Built-in Kestra plugins"]
     I --> B["Cloud Storage bucket<br/>Original Parquet file"]
     B -->|BigQuery load job| R
     subgraph D["BigQuery dataset: a container for tables and views"]

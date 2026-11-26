@@ -255,7 +255,9 @@ References: [Kestra BigQuery Query](https://kestra.io/plugins/plugin-gcp/google-
 
 ## 8. Finish and clean up
 
-If continuing to a later SQL exercise, keep the resources as directed by the instructor. Otherwise:
+**Continuing to [Week 12](../12-data-modeling-and-bigquery/README.md)? Keep your course project, `taxi_analytics` dataset and consolidated `yellow_trips` table.** Week 12 uses the January and February 2024 records from section 7 for data modeling and query exercises. Keep the bucket and your Terraform configuration and state as well; do not run `terraform destroy` before that session. If you have already cleaned up or have not completed the merge exercise, tell the instructor before Week 12 so you can follow its catch-up steps.
+
+If you are finishing the cloud exercises and no longer need these resources:
 
 1. In BigQuery, delete only the monthly exercise staging tables you created and, if you completed section 7, the shared `yellow_trips` table.
 2. In Cloud Storage, delete only the uploaded exercise object(s), following Part 5's notes on versions and soft deletion.

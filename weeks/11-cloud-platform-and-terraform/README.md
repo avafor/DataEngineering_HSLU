@@ -47,7 +47,7 @@ This diagram shows the wider architecture. The core session covers infrastructur
 
 5. **Optional extension:** [upload a taxi file to Cloud Storage with Kestra](part-5-kestra-to-cloud-storage.md): configure a pipeline identity, complete the upload task, verify the object and investigate a rerun.
 
-6. **Optional extension:** [load and query taxi data in BigQuery](part-6-kestra-to-bigquery.md): add the third Kestra task, inspect the table and verify replacement on reruns.
+6. **Optional extension:** [load and query taxi data in BigQuery](part-6-kestra-to-bigquery.md): add the third Kestra task, inspect the monthly staging table and verify replacement on reruns. Then add a fourth task to merge new records into the consolidated `yellow_trips` table using row hashes, and test January → February → January again to check that an unchanged rerun does not add duplicates.
 
 Parts 1–6 are available. Parts 1–3 form the core session; Parts 4–6 are follow-up exercises. Before class, complete only the [coupon activation and tool installations](../../preparation/week-11.md); project creation and authentication are classroom activities.
 
