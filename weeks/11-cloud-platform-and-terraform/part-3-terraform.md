@@ -8,7 +8,7 @@ Create a **Cloud Storage bucket** and a **BigQuery dataset** from a Terraform co
 
 Terraform prepares the infrastructure. Downloading taxi files, uploading them and loading tables are later pipeline tasks coordinated by Kestra. At the end of this exercise, the bucket and dataset will be empty.
 
-Complete [Part 2](part-2-google-cloud-setup.md) first: your project must have billing, the required APIs and a service account with Storage Admin and BigQuery Admin roles. Set `GOOGLE_APPLICATION_CREDENTIALS` to that service account's downloaded JSON key in the terminal you use here. Terraform acts as this service account, not the student account signed in to the Console. Creating a separate pipeline identity with permissions for its data tasks is a later exercise.
+Complete [Part 2](part-2-google-cloud-setup.md) first: your project must be linked to the course coupon’s billing account, have all four APIs from Part 2 section 5 enabled, and have a service account with Storage Admin and BigQuery Admin roles. Set `GOOGLE_APPLICATION_CREDENTIALS` to that service account's downloaded JSON key in the terminal you use here. Terraform acts as this service account, not the student account signed in to the Console. Creating a separate pipeline identity with permissions for its data tasks is a later exercise.
 
 ## 1. Open the starter and check your tools
 
@@ -25,12 +25,14 @@ Terraform CLI runs commands such as `plan` and `apply`. The **Google provider** 
 
 The starter accepts Terraform CLI **1.11.4 or later within version 1.x** and currently specifies Google provider **6.44.0**, with which this configuration passed local validation. This is not a requirement to use versions from previous semesters, nor a claim that this is the latest provider. We specify a provider version so everyone uses the same setup for the exercise.
 
-**Your turn:** Record your project ID. In `main.tf`, replace both `REPLACE_WITH_...` values:
+**Your turn:** Use the project ID you recorded in Part 2. In `main.tf`, replace the existing values for these two settings:
 
-- `project`: your actual project ID from Part 2.
-- `name`: a globally unique bucket name, for example your project ID followed by `-taxi-raw`. Use lowercase letters, digits and hyphens for this exercise.
+- `project` in the `provider "google"` block: your actual project ID from Part 2.
+- `name` in the `google_storage_bucket` block: a globally unique bucket name, for example your project ID followed by `-taxi-raw`. Use lowercase letters, digits and hyphens for this exercise.
 
-Save `main.tf`. No credentials need to be pasted into it. The provider finds the service-account JSON key through `GOOGLE_APPLICATION_CREDENTIALS`. If you opened a new terminal, repeat the environment-variable command from Part 2. The provider's `project` setting explicitly selects where resources are created; changing the CLI's default project does not change this value.
+The checked-in values `dengtaxi` and `forooz-dengtaxi-taxi-raw` are instructor examples; replace them with your own project ID and bucket name.
+
+Save `main.tf`. No credentials need to be pasted into it. The provider finds the service-account JSON key through `GOOGLE_APPLICATION_CREDENTIALS`. If you opened a new terminal, repeat the environment-variable command from Part 2. The provider's `project` setting explicitly selects where resources are created; selecting a different project in the browser Console does not change this value.
 
 ## 2. Read the configuration before running it
 
@@ -247,7 +249,7 @@ Next: [Part 4 — Make the configuration reusable with variables](part-4-terrafo
 | Wrong credentials | Check that the key belongs to the intended service account and that an old `GOOGLE_CREDENTIALS` setting or explicit provider `credentials` value is not overriding this setup. See Part 2. |
 | Permission denied | Check the service account's project roles with the instructor. A valid key authenticates the account but does not grant permissions. |
 | Bucket name already exists | Choose a different globally unique name and inspect the new plan. |
-| Billing or API error | Recheck the project setup in Part 2. |
+| Billing or API error | Check the coupon billing link in Part 2 section 3 and the enabled APIs in section 5. Confirm they belong to the project set in `main.tf`. |
 | One resource succeeds and the other fails | Correct the reported issue and rerun `plan`; retain the state so Terraform can track the successful resource. |
 
 References: [Google provider](https://registry.terraform.io/providers/hashicorp/google/6.44.0/docs) · [Bucket resource](https://registry.terraform.io/providers/hashicorp/google/6.44.0/docs/resources/storage_bucket) · [Terraform initialization](https://developer.hashicorp.com/terraform/cli/commands/init) · [Google authentication](https://docs.cloud.google.com/docs/terraform/authentication).
