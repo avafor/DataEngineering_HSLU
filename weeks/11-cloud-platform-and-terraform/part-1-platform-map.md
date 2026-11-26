@@ -4,7 +4,7 @@
 
 ## Goal
 
-Decide what each cloud component does before configuring it. This activity does not create resources or move data.
+Understand what each cloud component does before configuring it. This activity does not create resources or move data.
 
 ## 1. Start with the local pipeline
 
@@ -27,7 +27,7 @@ PostgreSQL holds both the loaded records and the tables queried by a consumer. T
 | Data warehouse | Stores structured data for analytical SQL queries. | Tables in a BigQuery dataset. |
 | Data mart | A focused, curated part of warehouse data for a particular consumer or topic. | A daily pickup-zone table for an analyst. |
 
-A **Cloud Storage bucket** is a container for objects such as Parquet files. A **BigQuery dataset** is a namespace that groups BigQuery tables and views. The word `dataset` therefore has a specific BigQuery meaning here; it is not the taxi file itself.
+A **Cloud Storage bucket** is a container for objects such as Parquet files. **BigQuery** is Google Cloud’s managed data warehouse: it stores analytical tables and executes SQL queries. In this design, it takes over the analytical role that PostgreSQL played in our local exercises. A **BigQuery dataset** is a namespace that groups BigQuery tables and views. The word `dataset` therefore has a specific BigQuery meaning here; it is not the taxi file itself.
 
 ## 3. Distinguish ETL and ELT
 
@@ -40,25 +40,34 @@ The letters describe when transformation happens:
 
 ELT does not mean that source data needs no validation or that every value should be exposed to every user. It means the main business transformation runs after data reaches the analytical platform.
 
-## 4. Complete the architecture
+## 4. How the cloud pipeline fits together
 
-Copy this table into your notes and fill the empty cells before looking back at the Week 11 overview.
+The diagram below shows the planned data path. You do not need to create these tables or write BigQuery SQL yet.
 
-| Stage | Tool or location | What happens? |
-|---|---|---|
-| Source | NYC TLC | Monthly Parquet files are published. |
-| Ingestion | __________ | The selected file is acquired and transferred. |
-| Raw storage | __________ | The source file is retained as an object. |
-| Warehouse load | __________ | Source records become queryable with SQL. |
-| Transformation | __________ | SQL applies quality and reporting rules. |
-| Serving | __________ | A consumer queries a curated table. |
+```mermaid
+flowchart TD
+    S["NYC TLC: monthly Parquet file"] --> I["Download and upload task<br/>Python, orchestrated by Kestra"]
+    I --> B["Cloud Storage bucket<br/>Original Parquet file"]
+    B -->|BigQuery load job| R
+    subgraph D["BigQuery dataset: a container for tables and views"]
+        R["Source table<br/>Loaded taxi records"] -->|SQL transformation in BigQuery| C["Curated table<br/>Daily fare totals by pickup zone"]
+    end
+    C --> U["Analyst or dashboard<br/>Queries the prepared results"]
+    T["Terraform"] -.->|Creates the bucket| B
+    T -.->|Creates the dataset| D
+```
 
-Add two different arrow styles to your drawing:
+**Read the solid arrows from top to bottom:**
 
-1. solid arrows for movement or transformation of data;
-2. dotted arrows from Terraform to resources that Terraform creates.
+1. A pipeline task downloads a monthly taxi file from TLC and uploads it to Cloud Storage.
+2. Cloud Storage retains the original file. It is file storage, not a table that we query in this example.
+3. A BigQuery load job reads the file and creates or populates a source table. The records are now available for SQL queries.
+4. SQL in BigQuery transforms those records into a curated table—for example, daily fare totals by pickup zone.
+5. An analyst or dashboard queries that prepared table.
 
-**Checkpoint:** Which boxes contain data, and which action only creates an empty place where data can later be stored?
+**The dotted arrows mean “creates the infrastructure.”** Terraform creates the bucket and the BigQuery dataset. Creating these containers does not download a file, load a table or calculate a report. Pipeline tasks perform those actions; Kestra can coordinate when they run and in which order.
+
+**For this session:** we create the bucket and dataset with Terraform. Loading taxi data, transforming it in BigQuery and serving a report are follow-up work. The complete diagram explains what those resources will be used for later.
 
 ## 5. Decide what Terraform should manage
 
@@ -81,7 +90,7 @@ Terraform will manage actions 1, 3, and 6 in this practical. The pipeline will p
 3. Why should students inspect a Terraform plan before applying it?
 4. Which part of this design supports a specific consumer: the raw bucket, the loaded source table, or the curated table?
 
-**Finish with:** one labelled architecture containing the source, ingestion, Cloud Storage, BigQuery source table, transformation, curated table, consumer, and Terraform.
+**Key takeaway:** Cloud Storage retains files, BigQuery holds analytical tables and runs SQL, and Terraform creates the infrastructure that the pipeline will use.
 
 
 [Next: set up your Google Cloud project](part-2-google-cloud-setup.md)
