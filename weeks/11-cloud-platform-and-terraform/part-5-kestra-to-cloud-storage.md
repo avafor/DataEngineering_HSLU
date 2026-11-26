@@ -6,7 +6,7 @@
 
 Connect the local orchestrator to the bucket you created with Terraform. Complete two tasks: download one monthly taxi file, then upload it unchanged to Cloud Storage. **Terraform creates the bucket; Kestra puts data into it.**
 
-Reuse the working local Kestra installation from Week 5. BigQuery loading and SQL transformation come later; the dataset stays empty in this exercise.
+Reuse the working local Kestra installation from Week 5. [Part 6](part-6-kestra-to-bigquery.md) adds BigQuery loading; SQL business transformation comes later. The dataset stays empty during Part 5.
 
 ```mermaid
 flowchart LR
@@ -167,7 +167,7 @@ Run it again, then compare the object listing and details. Explain what happened
 
 ## 7. Finish and clean up
 
-Keep the object only if the instructor asks you to continue with it. Otherwise, use the Console to delete **only the exercise object** you uploaded. If versioning is enabled, check for noncurrent versions too before trying to remove the bucket. Soft-deleted objects can remain billable until their retention expires; deleting a live object is not a promise of immediate removal of all retained copies.
+If continuing directly to [Part 6](part-6-kestra-to-bigquery.md), keep the bucket, dataset, object, service account and key. Otherwise, use the Console to delete **only the exercise object** you uploaded. If versioning is enabled, check for noncurrent versions too before trying to remove the bucket. Soft-deleted objects can remain billable until their retention expires; deleting a live object is not a promise of immediate removal of all retained copies.
 
 Return to the original Terraform directory, keep the Terraform key configured, and use `terraform plan -destroy` followed by `terraform destroy` as in Part 3. Leave `force_destroy = false`; do not bypass the nonempty-bucket check. The project-level grant remains when the bucket is deleted, and a recreated bucket in the same project inherits it. If you chose the bucket-level alternative, grant access again after recreating the bucket. These manual IAM grants are not managed by this Terraform configuration.
 
@@ -188,3 +188,5 @@ The pipeline service account and key were created manually, so this Terraform co
 **Finish with:** a successful two-task execution and a matching object in Cloud Storage. Explain which identity created the bucket and which identity uploaded the file.
 
 References: [Kestra GCS Upload](https://kestra.io/plugins/plugin-gcp/google-cloud-storage-gcs/io.kestra.plugin.gcp.gcs.upload) · [Google credential-file discovery](https://docs.cloud.google.com/docs/authentication/application-default-credentials) · [Cloud Storage upload permissions](https://docs.cloud.google.com/storage/docs/uploading-objects).
+
+Next: [Part 6 — Load and query taxi data in BigQuery](part-6-kestra-to-bigquery.md).

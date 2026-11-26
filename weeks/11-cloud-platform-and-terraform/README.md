@@ -15,7 +15,7 @@ Prepare the cloud infrastructure for the NYC Taxi example. By the end of the two
 - provision and inspect an empty Google Cloud Storage bucket and BigQuery dataset; and
 - remove the exercise resources with `terraform destroy`.
 
-Refactoring with variables (Part 4) and uploading a taxi file with Kestra (Part 5) are extensions if time permits, or independent follow-up exercises. Part 5 can follow Part 3 directly.
+Refactoring with variables (Part 4), uploading a taxi file with Kestra (Part 5), and loading it into BigQuery (Part 6) are extensions if time permits, or follow-up exercises. Part 5 can follow Part 3 directly; Part 6 builds on Part 5.
 
 ## From Week 5 to Week 11
 
@@ -36,7 +36,7 @@ flowchart LR
 
 The solid arrows show the **data pipeline**: data moves and changes. The dotted arrows show **infrastructure provisioning**: Terraform creates and configures the places where the data will live. Terraform does not replace ingestion or transformation.
 
-This diagram shows the wider architecture. The core session covers infrastructure. Optional Part 5 adds downloading and uploading one file; BigQuery loading and transformation remain follow-up work.
+This diagram shows the wider architecture. The core session covers infrastructure. Optional Part 5 adds downloading and uploading one file; Part 6 loads it into BigQuery and checks rerun behaviour. Business transformations remain follow-up work.
 
 ## Classroom practical sequence
 
@@ -47,11 +47,13 @@ This diagram shows the wider architecture. The core session covers infrastructur
 
 5. **Optional extension:** [upload a taxi file to Cloud Storage with Kestra](part-5-kestra-to-cloud-storage.md): configure a pipeline identity, complete the upload task, verify the object and investigate a rerun.
 
-Parts 1–5 are available. Parts 1–3 form the core session; Parts 4 and 5 can be completed independently afterward. Before class, complete only the [coupon activation and tool installations](../../preparation/week-11.md); project creation and authentication are classroom activities.
+6. **Optional extension:** [load and query taxi data in BigQuery](part-6-kestra-to-bigquery.md): add the third Kestra task, inspect the table and verify replacement on reruns.
+
+Parts 1–6 are available. Parts 1–3 form the core session; Parts 4–6 are follow-up exercises. Before class, complete only the [coupon activation and tool installations](../../preparation/week-11.md); project creation and authentication are classroom activities.
 
 ## Follow-up work
 
-Part 5 covers the pipeline identity and the source → Cloud Storage step. A later activity will load the stored file into BigQuery, transform it with SQL and verify the results. These activities are not required to finish the core two-hour session.
+Parts 5 and 6 cover the pipeline identity and the source → Cloud Storage → BigQuery path. A later activity can transform the loaded records with SQL into a curated report. These activities are not required to finish the core two-hour session.
 
 ## Project connection
 
