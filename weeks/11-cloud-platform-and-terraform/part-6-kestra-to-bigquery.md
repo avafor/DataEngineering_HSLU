@@ -88,7 +88,7 @@ For project `my-course-project`, dataset `taxi_analytics`, year `2024`, and mont
 my-course-project.taxi_analytics.yellow_trips_2024_01
 ```
 
-**Why include the month in the table name?** Replacing January's table should not erase February. This is a simple teaching design. A partitioned table holding multiple months is a later design option; do not use one shared table with full-table replacement for all months.
+**Why include the month in the table name?** Replacing January's table should not erase February. This is a simple teaching design. Section 7 adds a shared table using a separate merge task; do not use one shared table with full-table replacement for all months.
 
 ## 4. Save and execute the completed flow
 
@@ -162,11 +162,92 @@ With replacement and an unchanged source file, the count should stay the same. T
 
 A successful replacement updates the destination table as one load operation. It does not make the download, Cloud Storage upload and BigQuery load one shared transaction.
 
-## 7. Finish and clean up
+## 7. Add new months to one table without repeating rows
+
+Now keep January, February and later months together in **`yellow_trips`**. Keep the existing three tasks: the monthly table becomes a **staging table**, where the file is loaded before its records are added to the shared table.
+
+```text
+Download → Upload → Load monthly staging table → Merge into yellow_trips
+```
+
+Simply changing the destination to `yellow_trips` with `WRITE_APPEND` would repeat every row on a rerun. Instead, use the hash idea from Week 2: compute a fingerprint of each source row and insert it only if that fingerprint is not already present.
+
+### Add a fourth task
+
+Create a new flow by copying your completed three-task YAML and changing its flow ID to **`taxi_to_bigquery_merge`**. Keep the monthly destination and `WRITE_TRUNCATE` in `load_bigquery`. Append the following fourth task under `tasks:`, aligned with the previous tasks:
+
+```yaml
+  - id: merge_trips
+    type: io.kestra.plugin.gcp.bigquery.Query
+    projectId: "{{ inputs.project_id }}"
+    location: "{{ inputs.location }}"
+    sql: |
+      -- Prepare distinct rows and their content hashes for this month.
+      CREATE TEMP TABLE incoming_trips AS
+      SELECT DISTINCT
+        TO_HEX(SHA256(TO_JSON_STRING(t))) AS row_hash,
+        DATE('{{ inputs.year }}-{{ inputs.month }}-01') AS source_month,
+        t.*
+      FROM `{{ inputs.project_id }}.{{ inputs.dataset }}.yellow_trips_{{ inputs.year }}_{{ inputs.month }}` AS t;
+
+      -- Create the shared table on the first run, with the same columns.
+      CREATE TABLE IF NOT EXISTS `{{ inputs.project_id }}.{{ inputs.dataset }}.yellow_trips` AS
+      SELECT * FROM incoming_trips WHERE FALSE;
+
+      -- Add only rows whose hash is not already in the shared table.
+      MERGE `{{ inputs.project_id }}.{{ inputs.dataset }}.yellow_trips` AS target
+      USING incoming_trips AS source
+      ON target.row_hash = source.row_hash
+      WHEN NOT MATCHED THEN
+        INSERT ROW;
+```
+
+Read the SQL in three parts:
+
+1. **Prepare incoming rows:** `TO_JSON_STRING(t)` represents all original columns of a row as text. `SHA256` hashes that text; `TO_HEX` makes the hash readable. `SELECT DISTINCT` removes identical rows within this incoming file. `source_month` records the file's month, independently of the pickup timestamp.
+2. **Create the shared table if needed:** `WHERE FALSE` copies the column structure without inserting rows. If `yellow_trips` already exists, this statement leaves it unchanged.
+3. **Merge:** match incoming and stored rows by `row_hash`. `WHEN NOT MATCHED` inserts only unseen rows. There is no update or delete clause, so existing rows remain. `INSERT ROW` inserts all source columns in order; this example creates the destination with the same column order.
+
+The hash uses the original source columns, **not** the execution date or `source_month`. An identical source row therefore has the same hash when the flow runs again. BigQuery executes this SQL; Kestra coordinates the tasks. The temporary `incoming_trips` table exists only for this SQL script.
+
+### Test January, February and a rerun
+
+Use **2024-01 and 2024-02** for this exercise, with their matching source schemas. Run **one execution at a time**, including across copies of this flow: this example does not implement a lock or an enforced unique constraint for concurrent writers. Start with a new `yellow_trips` table created by this task, not a table previously filled using plain append.
+
+1. Save and execute the new four-task flow for **2024 / 01**. Wait for `merge_trips` to succeed.
+2. Run the following query and record January's count.
+3. Execute for **2024 / 02**. Query again: February should appear and January's count should remain unchanged.
+4. Execute **2024 / 01 again**, with the same source file. Both counts should remain unchanged.
+
+```sql
+SELECT source_month, COUNT(*) AS trip_count
+FROM `YOUR_PROJECT_ID.taxi_analytics.yellow_trips`
+GROUP BY source_month
+ORDER BY source_month;
+```
+
+Check for repeated hashes. This query should return **no rows**:
+
+```sql
+SELECT row_hash, COUNT(*) AS copies
+FROM `YOUR_PROJECT_ID.taxi_analytics.yellow_trips`
+GROUP BY row_hash
+HAVING COUNT(*) > 1;
+```
+
+The shared table's count can be smaller than the staging count because identical source rows are collapsed. If the same row occurs in two files, it is stored once, with the `source_month` of the first file processed.
+
+**Discuss:** Why do we need both `SELECT DISTINCT` and `MERGE`? What would happen if a republished record had a corrected fare?
+
+**Scope of this duplicate rule:** identical source records count as duplicates; a hash is not a true trip identifier. Two genuine trips with identical recorded values would be collapsed. A changed fare produces a different hash and is inserted as another record; this insert-only design does not reconcile corrections or deletions. Hash collisions are theoretically possible. Changing the source schema or column order also requires reviewing the hash definition and destination schema before loading further years.
+
+References: [Kestra BigQuery Query](https://kestra.io/plugins/plugin-gcp/google-cloud-bigquery/io.kestra.plugin.gcp.bigquery.query) · [BigQuery MERGE](https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/dml-syntax#merge_statement) · [SHA256](https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/hash_functions#sha256).
+
+## 8. Finish and clean up
 
 If continuing to a later SQL exercise, keep the resources as directed by the instructor. Otherwise:
 
-1. In BigQuery, delete only the monthly exercise table you created, and any other monthly tables you intentionally created during this exercise.
+1. In BigQuery, delete only the monthly exercise staging tables you created and, if you completed section 7, the shared `yellow_trips` table.
 2. In Cloud Storage, delete only the uploaded exercise object(s), following Part 5's notes on versions and soft deletion.
 3. Return to your original Terraform directory. With the Terraform key configured, inspect `terraform plan -destroy` and run `terraform destroy` to remove the now-empty dataset and bucket.
 
@@ -185,6 +266,6 @@ The tables were created by the load job, not recorded as separate Terraform reso
 | Row count increases unexpectedly on rerun | Check `writeDisposition`, the destination table name and whether the source file changed. |
 | Old column names fail in SQL | Inspect Schema; this load retains TLC names rather than the renamed Week 5 ETL fields. |
 
-**Finish with:** a three-task successful execution, a queryable BigQuery table, and evidence that rerunning the same unchanged month does not accumulate rows.
+**Finish with:** a successful load and a queryable BigQuery table. After section 7, also show a four-task execution, January and February in `yellow_trips`, and unchanged counts after a January rerun.
 
 References: [Kestra LoadFromGcs](https://kestra.io/plugins/plugin-gcp/google-cloud-bigquery/io.kestra.plugin.gcp.bigquery.loadfromgcs) · [Loading Parquet into BigQuery](https://docs.cloud.google.com/bigquery/docs/loading-data-cloud-storage-parquet).
